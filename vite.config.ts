@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  base: '/zika/',
   server: {
     host: '0.0.0.0', // 允许手机通过局域网访问
   },
@@ -15,11 +16,11 @@ export default defineConfig({
         name: '字卡 - 恋爱陪伴',
         short_name: '字卡',
         description: '温暖的字卡恋爱陪伴App',
-        theme_color: '#FFF8F0',
-        background_color: '#FFF8F0',
+        theme_color: '#FFF7F3',
+        background_color: '#FFF7F3',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
+        start_url: '/zika/',
         icons: [
           {
             src: 'icons/icon-192.svg',
