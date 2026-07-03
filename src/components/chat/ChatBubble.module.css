@@ -1,0 +1,170 @@
+.bubbleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+  animation: fadeIn 0.3s ease;
+  position: relative;
+}
+
+.rowRight {
+  flex-direction: row-reverse;
+}
+
+.rowLeft {
+  flex-direction: row;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.avatarImg {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.bubble {
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+  word-break: break-word;
+  position: relative;
+}
+
+.bubbleSelf {
+  background: var(--color-bubble-self);
+  border: 1px solid var(--color-bubble-self-border);
+  border-top-right-radius: var(--radius-sm);
+}
+
+.bubblePartner {
+  background: var(--color-bubble-partner);
+  border: 1px solid var(--color-bubble-partner-border);
+  border-top-left-radius: var(--radius-sm);
+}
+
+.sticker {
+  max-width: 160px;
+  max-height: 160px;
+  border-radius: var(--radius-sm);
+  display: block;
+}
+
+/* ===== 拍一拍：居中灰色小字 ===== */
+.nudgeRow {
+  text-align: center;
+  margin-bottom: 8px;
+  animation: fadeIn 0.3s ease;
+}
+
+.nudgeText {
+  color: var(--color-text-hint);
+  font-size: var(--font-size-xs);
+}
+
+.nudgeTime {
+  color: var(--color-text-hint);
+  font-size: 10px;
+  margin-left: 6px;
+}
+
+/* ===== 选择题：银白色框 ===== */
+.choiceBox {
+  max-width: 78%;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent-light);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.choiceSelf {
+  border-top-right-radius: var(--radius-sm);
+}
+
+.choicePartner {
+  border-top-left-radius: var(--radius-sm);
+}
+
+.choiceQuestion {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
+}
+
+.choiceOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.choiceOption {
+  padding: 5px 10px;
+  background: #FFFFFF;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.choiceAnswer {
+  font-weight: 500;
+  color: var(--color-accent);
+  text-align: center;
+}
+
+/* ===== 引用 ===== */
+.quoteRef {
+  background: rgba(0, 0, 0, 0.03);
+  border-left: 3px solid var(--color-accent-light);
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.quoteBar {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+  margin-bottom: 4px;
+  padding-left: 6px;
+  border-left: 2px solid var(--color-accent-light);
+}
+
+.time {
+  position: absolute;
+  bottom: -18px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+  white-space: nowrap;
+}
+
+.rowRight .time {
+  right: 48px;
+}
+
+.rowLeft .time {
+  left: 48px;
+}

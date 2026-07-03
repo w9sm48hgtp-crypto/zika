@@ -1,0 +1,188 @@
+.container {
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-bubble-partner-border);
+  padding: 8px 12px;
+  padding-bottom: calc(8px + var(--safe-area-bottom));
+  flex-shrink: 0;
+}
+
+.quotePreview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.quoteCancel {
+  font-size: 14px;
+  color: var(--color-text-hint);
+  padding: 2px 6px;
+}
+
+.choiceHint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.choiceCancel {
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+  padding: 2px 6px;
+  font-weight: 500;
+}
+
+.inputRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.plusBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-bg-warm);
+  color: var(--color-text-secondary);
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.textInput {
+  flex: 1;
+  padding: 10px 14px;
+  background: var(--color-bg);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+}
+
+.textInput::placeholder {
+  color: var(--color-text-hint);
+}
+
+.choiceInput {
+  flex: 1;
+  padding: 10px 14px;
+  background: var(--color-bg-warm);
+  border: 1px solid var(--color-accent-light);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  resize: none;
+  font-family: inherit;
+}
+
+.choiceInput::placeholder {
+  color: var(--color-text-hint);
+}
+
+.sendBtn {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: white;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  flex-shrink: 0;
+  transition: opacity 0.2s;
+  align-self: center;
+}
+
+.sendBtn:disabled {
+  opacity: 0.4;
+}
+
+.menu {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  animation: fadeIn 0.2s ease;
+}
+
+.menuItem {
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-warm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* 表情包选择面板 */
+.stickerPanel {
+  padding-top: 8px;
+  animation: fadeIn 0.2s ease;
+}
+
+.stickerPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.stickerGrid {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.stickerItem {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-bg);
+  border: 2px solid transparent;
+}
+
+.stickerItem:hover,
+.stickerItem:active {
+  border-color: var(--color-accent);
+}
+
+.stickerItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stickerEmpty {
+  text-align: center;
+  color: var(--color-text-hint);
+  font-size: var(--font-size-sm);
+  padding: 16px 0;
+}
+
+.stickerUploadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  margin-top: 4px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}

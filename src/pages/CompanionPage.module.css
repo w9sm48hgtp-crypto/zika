@@ -1,0 +1,365 @@
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 20px 16px;
+  margin-bottom: 16px;
+}
+
+/* 场景选择 */
+.sceneRow {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.scenePill {
+  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
+  transition: all 0.2s;
+}
+
+.scenePill:hover {
+  color: var(--color-text-primary);
+}
+
+.scenePillActive {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.scenePill:disabled {
+  opacity: 0.6;
+}
+
+.customInput {
+  display: block;
+  width: 200px;
+  margin: 0 auto 16px;
+  padding: 8px 14px;
+  text-align: center;
+  border: 1px solid var(--color-bubble-partner-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+.customInput::placeholder {
+  color: var(--color-text-hint);
+}
+
+.customInput:disabled {
+  opacity: 0.5;
+}
+
+/* 计时器显示 */
+.timerDisplay {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.timerCompanion {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.timerValue {
+  font-size: 48px;
+  font-weight: 300;
+  letter-spacing: 4px;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.timerLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-hint);
+  margin-top: 6px;
+}
+
+/* 鼓励语句 */
+.encouragementBanner {
+  text-align: center;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  animation: fadeIn 0.3s ease;
+}
+
+.encouragementToast {
+  text-align: center;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-size: var(--font-size-sm);
+  animation: fadeIn 0.3s ease;
+}
+
+/* 白噪音 */
+.soundRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 14px;
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+}
+
+.soundLabel {
+  color: var(--color-accent);
+  flex-shrink: 0;
+  font-weight: 500;
+  font-size: var(--font-size-xs);
+}
+
+.soundSelect {
+  flex: 1;
+  max-width: 150px;
+  padding: 6px 28px 6px 10px;
+  border: 1px solid var(--color-accent-light);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23e89160'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.soundStop {
+  padding: 6px 14px;
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-light);
+  border-radius: var(--radius-full);
+}
+
+/* 模式切换 */
+.modeRow {
+  display: flex;
+  gap: 0;
+  justify-content: center;
+  margin-bottom: 16px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background: var(--color-bg);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.modeBtn {
+  padding: 8px 24px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+}
+
+.modeBtnActive {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+/* 倒计时时长 */
+.durationSection {
+  margin-bottom: 16px;
+}
+
+.presetRow {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.presetBtn {
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  transition: all 0.2s;
+}
+
+.presetBtnActive {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.customDuration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.durationInput {
+  width: 56px;
+  padding: 6px 8px;
+  text-align: center;
+  border: 1px solid var(--color-bubble-partner-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+/* 控制按钮 */
+.controlRow {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.startBtn {
+  width: 120px;
+  padding: 12px 0;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: #fff;
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.startBtn:active {
+  opacity: 0.85;
+}
+
+.stopBtn {
+  width: 100px;
+  padding: 12px 0;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: #fff;
+  font-size: var(--font-size-md);
+  font-weight: 500;
+}
+
+.cancelBtn {
+  width: 100px;
+  padding: 12px 0;
+  border-radius: var(--radius-full);
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
+}
+
+/* 历史记录入口按钮 */
+.historyBtn {
+  display: block;
+  width: 100%;
+  padding: 14px 0;
+  text-align: center;
+  color: var(--color-accent);
+  font-size: var(--font-size-md);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.historyBtn:active {
+  background: var(--color-bg);
+}
+
+/* 历史记录 */
+.historySection {
+  padding: 0 4px;
+}
+
+.historyTitle {
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--color-text-hint);
+  font-size: var(--font-size-sm);
+  padding: 24px 0;
+}
+
+.recordList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recordItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+.recordInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: var(--font-size-sm);
+}
+
+.recordScene {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.recordMode {
+  color: var(--color-text-hint);
+  font-size: var(--font-size-xs);
+}
+
+.recordDuration {
+  color: var(--color-accent);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.recordTime {
+  color: var(--color-text-hint);
+  font-size: var(--font-size-xs);
+}
+
+.recordCancelled {
+  color: var(--color-danger);
+  font-size: var(--font-size-xs);
+}
+
+.recordDelete {
+  padding: 4px 10px;
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}

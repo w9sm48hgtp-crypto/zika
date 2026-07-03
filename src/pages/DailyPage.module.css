@@ -1,0 +1,402 @@
+/* ===== 月历 ===== */
+.calendar {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.monthNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+}
+
+.monthBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 18px;
+  color: var(--color-accent);
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.monthLabel {
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.weekRow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--color-bg);
+}
+
+.weekHeader {
+  text-align: center;
+  padding: 8px 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+}
+
+.dayGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.dayCell {
+  aspect-ratio: 5 / 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 5px 3px;
+  min-height: 0;
+  position: relative;
+  gap: 2px;
+}
+
+.dayBtn {
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+}
+
+.dayBtn:active {
+  background: var(--color-bg);
+}
+
+.dayToday {
+  background: var(--color-accent-soft);
+}
+
+.daySelected {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+/* 经期标记 */
+.dayPeriod {
+  background: rgba(212, 149, 139, 0.18);
+}
+
+.dayPredicted {
+  background: rgba(212, 149, 139, 0.08);
+}
+
+.dayNum {
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  position: relative;
+  z-index: 1;
+}
+
+.dayToday .dayNum {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.dayTag,
+.dayTagPartner {
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.6;
+  z-index: 1;
+}
+
+.dayTag {
+  color: var(--color-blue);
+  background: var(--color-blue-soft);
+}
+
+.dayTagPartner {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.dayDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-accent-light);
+  margin-top: 1px;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+/* 图例 */
+.legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding: 8px 0 12px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legendDotPeriod {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: rgba(212, 149, 139, 0.18);
+}
+
+.legendDotPredicted {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: rgba(212, 149, 139, 0.08);
+}
+
+/* ===== 详情面板 ===== */
+.detailPanel {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 12px;
+  animation: fadeIn 0.2s ease;
+}
+
+.detailHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.detailDate {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.detailClose {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 14px;
+  color: var(--color-text-hint);
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detailSection {
+  margin-bottom: 14px;
+}
+
+.detailTitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-hint);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.tagCount {
+  font-weight: 400;
+  color: var(--color-text-hint);
+}
+
+.detailText {
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+}
+
+.detailAccent {
+  font-size: var(--font-size-md);
+  color: var(--color-accent);
+}
+
+.detailHint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-hint);
+}
+
+.detailMsg {
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  line-height: 1.8;
+}
+
+/* 状态标签选择 */
+.moodRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.moodPill {
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  transition: all 0.2s;
+}
+
+.moodPillActive {
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 500;
+}
+
+.hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-hint);
+}
+
+/* 生理期 */
+.periodToggle {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+}
+
+.periodToggleOn {
+  background: rgba(212, 149, 139, 0.2);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.periodBtnRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.periodCancel {
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+.comfortMsg {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(212, 149, 139, 0.08);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-accent);
+  line-height: 1.6;
+}
+
+.warningBox {
+  padding: 8px 12px;
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-accent);
+  line-height: 1.5;
+}
+
+/* 小纸条 */
+.noteItem {
+  margin-bottom: 8px;
+}
+
+.noteRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+}
+
+.noteText {
+  flex: 1;
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.noteActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.noteEditBtn {
+  padding: 2px 8px;
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+}
+
+.noteDelBtn {
+  padding: 2px 8px;
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+}
+
+.noteEditRow,
+.addNoteRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.noteInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--color-bubble-partner-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+
+.noteInput::placeholder {
+  color: var(--color-text-hint);
+}
+
+.noteSave {
+  padding: 7px 14px;
+  font-size: var(--font-size-sm);
+  color: #fff;
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.noteSave:disabled {
+  opacity: 0.4;
+}
+
+.noteCancel {
+  padding: 7px 10px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-hint);
+  flex-shrink: 0;
+}
+
+.tapHint {
+  text-align: center;
+  color: var(--color-text-hint);
+  font-size: var(--font-size-sm);
+  padding: 16px 0;
+}

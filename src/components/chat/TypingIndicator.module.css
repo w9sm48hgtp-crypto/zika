@@ -1,0 +1,64 @@
+.container {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+  animation: fadeIn 0.3s ease;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.avatarImg {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.bubble {
+  background: var(--color-bubble-partner);
+  border: 1px solid var(--color-bubble-partner-border);
+  border-top-left-radius: var(--radius-sm);
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.text {
+  color: var(--color-text-hint);
+  font-size: var(--font-size-sm);
+}
+
+.dots {
+  display: inline-flex;
+}
+
+.dot {
+  color: var(--color-text-hint);
+  font-size: var(--font-size-md);
+  animation: typingDot 1.4s infinite;
+}
+
+@keyframes typingDot {
+  0%, 60%, 100% { opacity: 0.2; }
+  30% { opacity: 1; }
+}

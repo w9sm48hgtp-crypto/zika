@@ -1,0 +1,152 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  margin-bottom: 16px;
+}
+
+.backBtn {
+  font-size: var(--font-size-md);
+  color: var(--color-accent);
+  padding: 4px 0;
+}
+
+.headerTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.headerSpacer {
+  width: 50px;
+}
+
+/* 统计卡片 */
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.statCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+}
+
+.statValue {
+  font-size: 22px;
+  font-weight: 300;
+  letter-spacing: 2px;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+}
+
+/* 分类选择器 */
+.catRow {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.catPill {
+  padding: 7px 18px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  transition: all 0.2s;
+}
+
+.catPillActive {
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 500;
+}
+
+/* 记录列表 */
+.listSection {
+  padding: 0 4px;
+}
+
+.listTitle {
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--color-text-hint);
+  font-size: var(--font-size-sm);
+  padding: 24px 0;
+}
+
+.recordList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 24px;
+}
+
+.recordItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+.recordInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: var(--font-size-sm);
+}
+
+.recordScene {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.recordMode {
+  color: var(--color-text-hint);
+  font-size: var(--font-size-xs);
+}
+
+.recordDuration {
+  color: var(--color-accent);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.recordTime {
+  color: var(--color-text-hint);
+  font-size: var(--font-size-xs);
+}
+
+.recordCancelled {
+  color: var(--color-danger);
+  font-size: var(--font-size-xs);
+}
+
+.recordDelete {
+  padding: 4px 10px;
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
