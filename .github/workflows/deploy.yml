@@ -1,8 +1,9 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
+   push:
     branches: [master]
+   workflow_dispatch:
 
 # 允许 Actions 写入 GitHub Pages
 permissions:
