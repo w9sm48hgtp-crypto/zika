@@ -9,11 +9,12 @@
 .sceneRow {
   display: flex;
   gap: 8px;
-  justify-content: center;
+  justify-content: flex-start;
   margin-bottom: 16px;
   flex-wrap: nowrap;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  padding: 0 16px;
 }
 
 .scenePill {
