@@ -23,6 +23,8 @@
   color: var(--color-text-secondary);
   font-size: var(--font-size-md);
   transition: all 0.2s;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .scenePill:hover {
