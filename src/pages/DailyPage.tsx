@@ -37,7 +37,7 @@ function dateStr(year: number, month: number, day: number): string {
 function DailyPage() {
   const {
     year, month, recordsMap, moodTags,
-    periodDays, predictedDays, prediction,
+    periodDays, predictedDays,
     selectedDate, selectedRecord,
     loadMonth, loadMoodTags, goMonth,
     selectDate, clearSelection,

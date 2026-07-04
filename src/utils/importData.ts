@@ -48,8 +48,10 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
         const existing = await db.cards.toArray();
         const existingContents = new Set(existing.map(c => c.content));
         const toAdd = value.filter((c: { content: string }) => !existingContents.has(c.content))
-          .map(({ id, ...rest }: { id?: number } & Record<string, unknown>) => ({
-            ...rest,
+          .map(({ id, ...rest }: { id?: number; type: string; content: string; category?: string; createdAt?: number }) => ({
+            type: rest.type,
+            content: rest.content,
+            category: rest.category,
             createdAt: rest.createdAt || Date.now(),
             updatedAt: Date.now(),
           }));
@@ -61,8 +63,10 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
         const existing = await db.soundTracks.toArray();
         const existingNames = new Set(existing.map(t => t.name));
         const toAdd = value.filter((t: { name: string }) => !existingNames.has(t.name))
-          .map(({ id, ...rest }: { id?: number } & Record<string, unknown>) => ({
-            ...rest,
+          .map(({ id, ...rest }: { id?: number; name: string; scene: string; audioData: string; createdAt?: number }) => ({
+            name: rest.name,
+            scene: rest.scene,
+            audioData: rest.audioData,
             createdAt: rest.createdAt || Date.now(),
           }));
         if (toAdd.length > 0) await db.soundTracks.bulkAdd(toAdd);
@@ -105,8 +109,9 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
         const existing = await db.moodTags.toArray();
         const existingNames = new Set(existing.map(t => t.name));
         const toAdd = value.filter((t: { name: string }) => !existingNames.has(t.name))
-          .map(({ id, ...rest }: { id?: number } & Record<string, unknown>) => ({
-            ...rest,
+          .map(({ id, ...rest }: { id?: number; name: string; category: string; createdAt?: number }) => ({
+            name: rest.name,
+            category: rest.category,
             createdAt: rest.createdAt || Date.now(),
           }));
         if (toAdd.length > 0) await db.moodTags.bulkAdd(toAdd);
