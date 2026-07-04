@@ -55,7 +55,7 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
             createdAt: rest.createdAt || Date.now(),
             updatedAt: Date.now(),
           }));
-        if (toAdd.length > 0) await db.cards.bulkAdd(toAdd);
+        if (toAdd.length > 0) await db.cards.bulkAdd(toAdd as any);
         break;
       }
       case 'soundTracks': {
@@ -69,7 +69,7 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
             audioData: rest.audioData,
             createdAt: rest.createdAt || Date.now(),
           }));
-        if (toAdd.length > 0) await db.soundTracks.bulkAdd(toAdd);
+        if (toAdd.length > 0) await db.soundTracks.bulkAdd(toAdd as any);
         break;
       }
       case 'periodMessages': {
@@ -114,7 +114,7 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
             category: rest.category,
             createdAt: rest.createdAt || Date.now(),
           }));
-        if (toAdd.length > 0) await db.moodTags.bulkAdd(toAdd);
+        if (toAdd.length > 0) await db.moodTags.bulkAdd(toAdd as any);
         break;
       }
     }
