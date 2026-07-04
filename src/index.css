@@ -1,35 +1,40 @@
 /* ===== 字卡 App 设计令牌 ===== */
 :root {
-  /* 主色调 - 温暖米白 */
-  --color-bg: #FFF7F3;
-  --color-bg-warm: #FFF0E8;
+  /* 背景 - 淡橙色 */
+  --color-bg: #fce7c8;
+  --color-bg-warm: #f8d9b0;
   --color-surface: #FFFFFF;
-  --color-surface-hover: #FFF5EF;
+  --color-surface-hover: #fef5e7;
 
-  /* 文字颜色 */
-  --color-text-primary: #4A3728;
-  --color-text-secondary: #8B7355;
-  --color-text-hint: #B8A898;
+  /* 文字颜色 - 黑白灰 */
+  --color-text-primary: #2d2d2d;
+  --color-text-secondary: #666666;
+  --color-text-hint: #999999;
 
   /* 聊天气泡 */
-  --color-bubble-self: #FFF3E0;
-  --color-bubble-self-border: #F5CFAB;
-  --color-bubble-partner: #FFF8F0;
-  --color-bubble-partner-border: #EDE0D4;
+  --color-bubble-self: #e8eff7;
+  --color-bubble-self-border: #6176ab;
+  --color-bubble-partner: #fdf0e2;
+  --color-bubble-partner-border: #e8d5c0;
 
-  /* 强调色 - 温暖橙色 */
-  --color-accent: #e89160;
-  --color-accent-light: #f0b895;
-  --color-accent-soft: #fdeade;
+  /* 强调色 - 蓝色（我的操作） */
+  --color-accent: #6176ab;
+  --color-accent-light: #97bee4;
+  --color-accent-soft: #e8eff7;
 
-  /* 辅助强调色 - 清新蓝色 */
-  --color-blue: #3399d4;
-  --color-blue-soft: #daf0fc;
-  --color-blue-light: #70b8e0;
+  /* 橙色 - 对方/温暖元素 */
+  --color-orange: #e28c43;
+  --color-orange-light: #eca660;
+  --color-orange-soft: #fdf0e2;
+
+  /* 蓝色 */
+  --color-blue: #6176ab;
+  --color-blue-soft: #97bee4;
+  --color-blue-light: #b0cce8;
 
   /* 状态色 */
   --color-success: #8FAF7E;
-  --color-warning: #E8C98E;
+  --color-warning: #e28c43;
   --color-danger: #D4958B;
   --color-danger-soft: rgba(212, 149, 139, 0.1);
 

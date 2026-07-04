@@ -41,6 +41,19 @@
   font-weight: 600;
 }
 
+.avatarPlaceholderPartner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-orange-soft);
+  color: var(--color-orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
 .bubble {
   max-width: 70%;
   padding: 10px 14px;
@@ -53,13 +66,13 @@
 
 .bubbleSelf {
   background: var(--color-bubble-self);
-  border: 1px solid var(--color-bubble-self-border);
+  border: 1px solid var(--color-accent);
   border-top-right-radius: var(--radius-sm);
 }
 
 .bubblePartner {
   background: var(--color-bubble-partner);
-  border: 1px solid var(--color-bubble-partner-border);
+  border: 1px solid var(--color-orange);
   border-top-left-radius: var(--radius-sm);
 }
 
@@ -78,8 +91,12 @@
 }
 
 .nudgeText {
+  display: inline-block;
   color: var(--color-text-hint);
   font-size: var(--font-size-xs);
+  background: var(--color-orange-soft);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
 }
 
 .nudgeTime {
@@ -91,8 +108,8 @@
 /* ===== 选择题：银白色框 ===== */
 .choiceBox {
   max-width: 78%;
-  background: var(--color-accent-soft);
-  border: 1px solid var(--color-accent-light);
+  background: var(--color-orange-soft);
+  border: 1px solid var(--color-orange-light);
   border-radius: var(--radius-md);
   padding: 12px 14px;
   font-size: var(--font-size-md);
@@ -130,7 +147,7 @@
 
 .choiceAnswer {
   font-weight: 500;
-  color: var(--color-accent);
+  color: var(--color-orange);
   text-align: center;
 }
 

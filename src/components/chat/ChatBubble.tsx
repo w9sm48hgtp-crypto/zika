@@ -46,7 +46,9 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
           {avatar ? (
             <img src={avatar} alt="" className={styles.avatarImg} />
           ) : (
-            <div className={styles.avatarPlaceholder}>{isUser ? '我' : name[0]}</div>
+            <div className={isUser ? styles.avatarPlaceholder : styles.avatarPlaceholderPartner}>
+              {isUser ? '我' : name[0]}
+            </div>
           )}
         </div>
         <div className={`${styles.choiceBox} ${isUser ? styles.choiceSelf : styles.choicePartner}`}>
@@ -73,7 +75,9 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
           {avatar ? (
             <img src={avatar} alt="" className={styles.avatarImg} />
           ) : (
-            <div className={styles.avatarPlaceholder}>{isUser ? '我' : name[0]}</div>
+            <div className={isUser ? styles.avatarPlaceholder : styles.avatarPlaceholderPartner}>
+              {isUser ? '我' : name[0]}
+            </div>
           )}
         </div>
         <div className={`${styles.choiceBox} ${isUser ? styles.choiceSelf : styles.choicePartner}`}>
@@ -113,7 +117,9 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
         {avatar ? (
           <img src={avatar} alt="" className={styles.avatarImg} />
         ) : (
-          <div className={styles.avatarPlaceholder}>{isUser ? '我' : name[0]}</div>
+          <div className={isUser ? styles.avatarPlaceholder : styles.avatarPlaceholderPartner}>
+            {isUser ? '我' : name[0]}
+          </div>
         )}
       </div>
 

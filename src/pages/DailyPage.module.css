@@ -81,11 +81,11 @@
 
 /* 经期标记 */
 .dayPeriod {
-  background: rgba(212, 149, 139, 0.18);
+  background: var(--color-orange-soft);
 }
 
 .dayPredicted {
-  background: rgba(212, 149, 139, 0.08);
+  background: rgba(226, 140, 67, 0.08);
 }
 
 .dayNum {
@@ -120,8 +120,8 @@
 }
 
 .dayTagPartner {
-  color: var(--color-accent);
-  background: var(--color-accent-soft);
+  color: var(--color-orange);
+  background: var(--color-orange-soft);
 }
 
 .dayDot {
@@ -154,14 +154,14 @@
   width: 12px;
   height: 12px;
   border-radius: 3px;
-  background: rgba(212, 149, 139, 0.18);
+  background: var(--color-orange-soft);
 }
 
 .legendDotPredicted {
   width: 12px;
   height: 12px;
   border-radius: 3px;
-  background: rgba(212, 149, 139, 0.08);
+  background: rgba(226, 140, 67, 0.08);
 }
 
 /* ===== 详情面板 ===== */
@@ -202,11 +202,23 @@
   margin-bottom: 14px;
 }
 
+.detailSectionBox {
+  margin-bottom: 12px;
+  padding: 14px;
+  background: var(--color-orange-soft);
+  border: 1px solid var(--color-orange-light);
+  border-radius: var(--radius-sm);
+}
+
 .detailTitle {
+  display: inline-block;
   font-size: var(--font-size-sm);
-  color: var(--color-text-hint);
-  margin-bottom: 6px;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
   font-weight: 500;
+  background: #fff;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
 }
 
 .tagCount {
@@ -222,6 +234,7 @@
 .detailAccent {
   font-size: var(--font-size-md);
   color: var(--color-accent);
+  font-weight: 500;
 }
 
 .detailHint {
@@ -245,16 +258,18 @@
 .moodPill {
   padding: 7px 16px;
   border-radius: var(--radius-full);
-  background: var(--color-bg);
+  background: #fff;
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
+  border: 1px solid var(--color-accent-light);
   transition: all 0.2s;
 }
 
 .moodPillActive {
-  background: var(--color-accent);
-  color: #fff;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
   font-weight: 500;
+  border-color: var(--color-accent);
 }
 
 .hint {
@@ -267,14 +282,14 @@
   padding: 8px 16px;
   border-radius: var(--radius-full);
   font-size: var(--font-size-sm);
-  background: var(--color-bg);
+  background: var(--color-accent-soft);
   color: var(--color-text-secondary);
   transition: all 0.2s;
 }
 
 .periodToggleOn {
-  background: rgba(212, 149, 139, 0.2);
-  color: var(--color-accent);
+  background: var(--color-accent);
+  color: #fff;
   font-weight: 500;
 }
 
@@ -295,7 +310,7 @@
 .comfortMsg {
   margin-top: 8px;
   padding: 8px 12px;
-  background: rgba(212, 149, 139, 0.08);
+  background: var(--color-accent-soft);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   color: var(--color-accent);
@@ -304,10 +319,10 @@
 
 .warningBox {
   padding: 8px 12px;
-  background: var(--color-accent-soft);
+  background: var(--color-orange-soft);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
-  color: var(--color-accent);
+  color: var(--color-orange);
   line-height: 1.5;
 }
 
@@ -322,7 +337,7 @@
   justify-content: space-between;
   gap: 8px;
   padding: 10px 12px;
-  background: var(--color-bg);
+  background: var(--color-accent-soft);
   border-radius: var(--radius-sm);
 }
 
@@ -362,10 +377,10 @@
 .noteInput {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid var(--color-bubble-partner-border);
+  border: 1px solid var(--color-accent-light);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-md);
-  background: var(--color-bg);
+  background: var(--color-accent-soft);
   color: var(--color-text-primary);
   font-family: inherit;
 }

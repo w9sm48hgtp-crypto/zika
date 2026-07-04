@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDailyStore } from '../stores/dailyStore';
 import { useSettingsStore } from '../stores/settingsStore';
-import { pickPeriodMessage, getPeriodWarning } from '../utils/periodPredictor';
+import { pickPeriodMessage } from '../utils/periodPredictor';
 import styles from './DailyPage.module.css';
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
@@ -77,7 +77,6 @@ function DailyPage() {
   const userMoodTags = moodTags.filter(t => t.category === 'mine' || t.category === 'both');
   const selectedTags = selectedRecord?.userMoodTags || [];
   const isPeriodDay = selectedDate ? periodDays.has(selectedDate) : false;
-  const periodWarning = selectedDate ? getPeriodWarning(selectedDate, prediction) : null;
 
   const handleDayClick = (day: number | null) => {
     if (day == null) return;
@@ -189,7 +188,7 @@ function DailyPage() {
           </div>
 
           {/* 我的状态 */}
-          <div className={styles.detailSection}>
+          <div className={styles.detailSectionBox}>
             <h4 className={styles.detailTitle}>
               我的状态
               {selectedTags.length > 0 && <span className={styles.tagCount}>（{selectedTags.length}/3）</span>}
@@ -210,9 +209,9 @@ function DailyPage() {
             </div>
           </div>
 
-          {/* 生理期 */}
-          <div className={styles.detailSection}>
-            <h4 className={styles.detailTitle}>生理期</h4>
+          {/* 生理期记录 */}
+          <div className={styles.detailSectionBox}>
+            <h4 className={styles.detailTitle}>生理期记录</h4>
             {!ongoingPeriod && !isPeriodDay && (
               <button className={styles.periodToggle} onClick={handleStartPeriod}>
                 标记为经期开始
@@ -242,33 +241,8 @@ function DailyPage() {
             )}
           </div>
 
-          {/* 预测提醒 */}
-          {periodWarning && (
-            <div className={styles.detailSection}>
-              <div className={styles.warningBox}>{periodWarning}</div>
-            </div>
-          )}
-          {prediction && (
-            <div className={styles.detailSection}>
-              <h4 className={styles.detailTitle}>预测下次经期</h4>
-              <p className={styles.detailText}>
-                {prediction.startDate} ~ {prediction.endDate}
-              </p>
-            </div>
-          )}
-
-          {/* 他的状态 */}
-          <div className={styles.detailSection}>
-            <h4 className={styles.detailTitle}>他的状态</h4>
-            {partnerRevealed && selectedRecord?.partnerMoodTag ? (
-              <p className={styles.detailAccent}>{companionName}今天觉得「{selectedRecord.partnerMoodTag}」</p>
-            ) : (
-              <p className={styles.detailHint}>{companionName}还没有记录今日状态</p>
-            )}
-          </div>
-
           {/* 我的小纸条 */}
-          <div className={styles.detailSection}>
+          <div className={styles.detailSectionBox}>
             <h4 className={styles.detailTitle}>我的小纸条</h4>
             {userNotes.map((note, i) => (
               <div key={i} className={styles.noteItem}>
@@ -291,7 +265,6 @@ function DailyPage() {
                 )}
               </div>
             ))}
-            {userNotes.length === 0 && <p className={styles.detailHint}>没有记录</p>}
             {userNotes.length < 3 && (
               <div className={styles.addNoteRow}>
                 <input className={styles.noteInput} value={newNote}
@@ -303,8 +276,18 @@ function DailyPage() {
             )}
           </div>
 
+          {/* 他的状态 */}
+          <div className={styles.detailSectionBox}>
+            <h4 className={styles.detailTitle}>他的状态</h4>
+            {partnerRevealed && selectedRecord?.partnerMoodTag ? (
+              <p className={styles.detailAccent}>{companionName}今天觉得「{selectedRecord.partnerMoodTag}」</p>
+            ) : (
+              <p className={styles.detailHint}>{companionName}还没有记录今日状态</p>
+            )}
+          </div>
+
           {/* 他的留言 */}
-          <div className={styles.detailSection}>
+          <div className={styles.detailSectionBox}>
             <h4 className={styles.detailTitle}>他的留言</h4>
             {selectedRecord?.partnerNote ? (
               <p className={styles.detailMsg}>{selectedRecord.partnerNote}</p>

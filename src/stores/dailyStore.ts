@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { db, type DailyRecord, type MoodTag } from '../db';
-import { pickPartnerDailyNote } from '../utils/cardExtractor';
+import { pickPartnerDailyNote, pickNoteReply } from '../utils/cardExtractor';
 import {
   predictNext, getPeriodDays, getPredictedDays,
   startPeriod, endPeriod, getOngoingPeriod, cancelLastPeriod, deletePeriodContaining,
@@ -194,8 +194,18 @@ export const useDailyStore = create<DailyState>((set, get) => ({
     }
     if ((record.userNotes?.length || 0) >= 3) return;
     const userNotes = [...(record.userNotes || []), note];
-    await db.dailyRecords.update(record.id!, { userNotes });
-    const updated = { ...record, userNotes };
+
+    // 随机回复：50% 概率从字卡库抽取 1~3 条文字作为回复
+    let partnerNote = record.partnerNote;
+    if (Math.random() < 0.5) {
+      const reply = await pickNoteReply();
+      if (reply) {
+        partnerNote = reply;
+      }
+    }
+
+    await db.dailyRecords.update(record.id!, { userNotes, partnerNote });
+    const updated = { ...record, userNotes, partnerNote };
     set({
       recordsMap: { ...recordsMap, [selectedDate]: updated },
       selectedRecord: updated,

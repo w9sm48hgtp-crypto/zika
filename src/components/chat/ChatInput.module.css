@@ -53,7 +53,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--color-bg-warm);
+  background: var(--color-orange-soft);
   color: var(--color-text-secondary);
   font-size: 20px;
   display: flex;
@@ -66,7 +66,7 @@
 .textInput {
   flex: 1;
   padding: 10px 14px;
-  background: var(--color-bg);
+  background: var(--color-orange-soft);
   border-radius: var(--radius-full);
   font-size: var(--font-size-md);
   color: var(--color-text-primary);
@@ -79,8 +79,8 @@
 .choiceInput {
   flex: 1;
   padding: 10px 14px;
-  background: var(--color-bg-warm);
-  border: 1px solid var(--color-accent-light);
+  background: var(--color-orange-soft);
+  border: 1px solid var(--color-orange-light);
   border-radius: var(--radius-md);
   font-size: var(--font-size-md);
   color: var(--color-text-primary);
@@ -95,17 +95,17 @@
 .sendBtn {
   padding: 8px 16px;
   border-radius: var(--radius-full);
-  background: var(--color-accent);
-  color: white;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: 600;
   flex-shrink: 0;
   transition: opacity 0.2s;
   align-self: center;
 }
 
 .sendBtn:disabled {
-  opacity: 0.4;
+  opacity: 0.55;
 }
 
 .menu {
@@ -118,7 +118,7 @@
 .menuItem {
   padding: 8px 14px;
   border-radius: var(--radius-sm);
-  background: var(--color-bg-warm);
+  background: var(--color-orange-soft);
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
 }
@@ -152,13 +152,13 @@
   height: 64px;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  background: var(--color-bg);
+  background: var(--color-orange-soft);
   border: 2px solid transparent;
 }
 
 .stickerItem:hover,
 .stickerItem:active {
-  border-color: var(--color-accent);
+  border-color: var(--color-orange);
 }
 
 .stickerItem img {

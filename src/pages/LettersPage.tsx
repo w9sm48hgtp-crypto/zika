@@ -68,6 +68,9 @@ function LettersPage() {
     <div className="page">
       <h1 className="page-title">书信</h1>
 
+      {/* 累计信数 */}
+      <p className={styles.letterCount}>共 {letters.length} 封信</p>
+
       {/* 写新信按钮 */}
       {!isComposing && (
         <button className={styles.composeBtn} onClick={() => setIsComposing(true)}>

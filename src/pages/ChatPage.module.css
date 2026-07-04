@@ -21,15 +21,6 @@
   color: var(--color-text-primary);
 }
 
-/* 左下角 "xxx 正在输入中..." 提示条 */
-.typingBar {
-  padding: 6px 14px;
-  font-size: var(--font-size-sm);
-  color: var(--color-accent);
-  text-align: left;
-  background: var(--color-bg);
-}
-
 /* 消息列表中的 typing 动画气泡区 */
 .typingArea {
   margin-bottom: 4px;

@@ -89,6 +89,13 @@ export async function pickLetterReply(): Promise<string> {
   return cards.map((c) => c.content).join('\n\n');
 }
 
+/** 随机抽取 1~3 条文字字卡，用于小纸条回复 */
+export async function pickNoteReply(): Promise<string> {
+  const count = 1 + Math.floor(Math.random() * 3); // 1, 2, 3
+  const cards = await pickRandomCards(count, ['nudge', 'sticker']);
+  return cards.map((c) => c.content).join('\n');
+}
+
 export function isWithinTenMinutes(timestamp: number): boolean {
   return Date.now() - timestamp < 10 * 60 * 1000;
 }

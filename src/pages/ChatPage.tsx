@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useSettingsStore } from '../stores/settingsStore';
-import { pickCardsWithRatio, isWithinTenMinutes } from '../utils/cardExtractor';
+import { isWithinTenMinutes } from '../utils/cardExtractor';
 import { ChatBubble } from '../components/chat/ChatBubble';
 import { ChatInput } from '../components/chat/ChatInput';
 import { TypingIndicator } from '../components/chat/TypingIndicator';
-import { db, type ChatMessage, type Card } from '../db';
+import { db, type ChatMessage } from '../db';
 import styles from './ChatPage.module.css';
 
 const SEED_CARDS = [
@@ -38,17 +38,13 @@ async function seedCardsIfEmpty() {
 function ChatPage() {
   const {
     messages, isTyping,
-    loadMessages, sendMessage, addPartnerMessage, setTyping,
+    loadMessages, sendMessage, scheduleReply,
   } = useChatStore();
-  const { partnerName, loadSettings } = useSettingsStore();
+  const { partnerName, chatBackground, loadSettings } = useSettingsStore();
 
   const [quotedMessage, setQuotedMessage] = useState<ChatMessage | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const replyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLoaded = useRef(false);
-  const choiceContentRef = useRef<string>('');
-  const replyKindRef = useRef<'cards' | 'choice' | 'both' | null>(null);
-  const doReplyRef = useRef<() => Promise<void>>(async () => {});
 
   useEffect(() => {
     if (!isLoaded.current) {
@@ -63,87 +59,6 @@ function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  // 执行字卡回复
-  const doCardsReply = useCallback(async () => {
-    const settings = useSettingsStore.getState();
-    const min = settings.replyCountMin || 1;
-    const max = settings.replyCountMax || 3;
-    const count = min + Math.floor(Math.random() * (max - min + 1));
-
-    const cards = await pickCardsWithRatio(
-      count,
-      settings.textRatio || 70,
-      settings.nudgeRatio || 20,
-      settings.stickerRatio || 10,
-    );
-
-    if (cards.length === 0) {
-      const fallback: Card = { type: 'text', content: '先去「我的」给我加点字卡吧~', createdAt: Date.now(), updatedAt: Date.now() };
-      await addPartnerMessage(fallback);
-    } else {
-      for (const card of cards) {
-        await new Promise((r) => setTimeout(r, 500 + Math.random() * 1000));
-        await addPartnerMessage(card);
-      }
-    }
-  }, [addPartnerMessage]);
-
-  // 执行选择题回复
-  const doChoiceReply = useCallback(async (choiceContent: string) => {
-    const lines = choiceContent.split('\n').filter(l => l.trim());
-    const options = lines.slice(1);
-    if (options.length === 0) return;
-    const picked = options[Math.floor(Math.random() * options.length)];
-
-    const msg: ChatMessage = { sender: 'partner', content: picked, msgType: 'choice_a', timestamp: Date.now() };
-    const id = await db.chatMessages.add(msg);
-    msg.id = id;
-    useChatStore.setState((s) => ({ messages: [...s.messages, msg] }));
-  }, []);
-
-  // 统一回复入口
-  const doReply = useCallback(async () => {
-    try {
-      const kind = replyKindRef.current;
-      if (kind === 'cards' || kind === 'both') {
-        await doCardsReply();
-      }
-      if ((kind === 'choice' || kind === 'both') && choiceContentRef.current) {
-        await doChoiceReply(choiceContentRef.current);
-      }
-    } catch (err) {
-      console.error('reply error:', err);
-    } finally {
-      setTyping(false);
-      replyKindRef.current = null;
-      choiceContentRef.current = '';
-    }
-  }, [setTyping, doCardsReply, doChoiceReply]);
-
-  // 始终保持 ref 指向最新 doReply
-  doReplyRef.current = doReply;
-
-  // 启动回复定时器
-  const scheduleReply = useCallback((kind: 'cards' | 'choice' | 'both', choiceContent?: string) => {
-    if (replyTimerRef.current) { clearTimeout(replyTimerRef.current); replyTimerRef.current = null; }
-
-    replyKindRef.current = kind;
-    choiceContentRef.current = choiceContent || '';
-    setTyping(true);
-
-    const settings = useSettingsStore.getState();
-    const delayMs = (settings.replyDelay || 1) * 60 * 1000;
-
-    replyTimerRef.current = setTimeout(() => {
-      replyTimerRef.current = null;
-      doReplyRef.current();
-    }, delayMs);
-  }, [doReply, setTyping]);
-
-  useEffect(() => {
-    return () => { if (replyTimerRef.current) clearTimeout(replyTimerRef.current); };
-  }, []);
-
   // 用户发送消息
   const handleSend = useCallback(async (
     content: string,
@@ -156,7 +71,6 @@ function ChatPage() {
     await sendMessage(content, msgType, quoteId, quoteContent);
     setQuotedMessage(null);
 
-    // 拍一拍和普通文字都触发字卡回复
     const hasChoice = (type === 'choice');
     const hasCards = (type === 'text' || type === 'nudge' || type === 'sticker');
 
@@ -188,7 +102,15 @@ function ChatPage() {
         <span className={styles.headerName}>{partnerName || '他'}</span>
       </header>
 
-      <div className={styles.messageList}>
+      <div
+        className={styles.messageList}
+        style={chatBackground ? {
+          backgroundImage: `url(${chatBackground})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+        } : undefined}
+      >
         {messages.length === 0 && (
           <div className={styles.emptyHint}>
             <p>发送第一条消息吧</p>
@@ -222,12 +144,6 @@ function ChatPage() {
 
         <div ref={bottomRef} />
       </div>
-
-      {isTyping && (
-        <div className={styles.typingBar}>
-          {partnerName || '他'} 正在输入中...
-        </div>
-      )}
 
       <ChatInput
         onSend={handleSend}

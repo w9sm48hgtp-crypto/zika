@@ -12,6 +12,7 @@ interface SettingsState {
   partnerAvatar: string;
   partnerName: string;
   vibrationEnabled: boolean;
+  chatBackground: string;
 
   loadSettings: () => Promise<void>;
   setReplyDelay: (v: number) => Promise<void>;
@@ -24,6 +25,7 @@ interface SettingsState {
   setPartnerAvatar: (v: string) => Promise<void>;
   setPartnerName: (v: string) => Promise<void>;
   setVibrationEnabled: (v: boolean) => Promise<void>;
+  setChatBackground: (v: string) => Promise<void>;
 }
 
 const defaultSettings: Record<string, unknown> = {
@@ -37,6 +39,7 @@ const defaultSettings: Record<string, unknown> = {
   partnerAvatar: '',
   partnerName: '他',
   vibrationEnabled: true,
+  chatBackground: '',
 };
 
 async function getSetting(key: string): Promise<unknown> {
@@ -59,10 +62,11 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   partnerAvatar: '',
   partnerName: '他',
   vibrationEnabled: true,
+  chatBackground: '',
 
   loadSettings: async () => {
     const keys = ['replyDelay', 'replyCountMin', 'replyCountMax', 'textRatio', 'nudgeRatio', 'stickerRatio',
-      'userAvatar', 'partnerAvatar', 'partnerName', 'vibrationEnabled'];
+      'userAvatar', 'partnerAvatar', 'partnerName', 'vibrationEnabled', 'chatBackground'];
     const vals = await Promise.all(keys.map(getSetting));
     set({
       replyDelay: vals[0] as number,
@@ -75,6 +79,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       partnerAvatar: vals[7] as string,
       partnerName: vals[8] as string,
       vibrationEnabled: vals[9] as boolean,
+      chatBackground: vals[10] as string,
     });
   },
 
@@ -88,4 +93,5 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setPartnerAvatar: async (v) => { await saveSetting('partnerAvatar', v); set({ partnerAvatar: v }); },
   setPartnerName: async (v) => { await saveSetting('partnerName', v); set({ partnerName: v }); },
   setVibrationEnabled: async (v) => { await saveSetting('vibrationEnabled', v); set({ vibrationEnabled: v }); },
+  setChatBackground: async (v) => { await saveSetting('chatBackground', v); set({ chatBackground: v }); },
 }));
