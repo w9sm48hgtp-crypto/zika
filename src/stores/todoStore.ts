@@ -167,7 +167,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     set({ items: get().items.filter(i => i.id !== id) });
   },
 
-  reorderItems: async (categoryId: number, sortedItems: TodoItem[]) => {
+  reorderItems: async (_categoryId: number, sortedItems: TodoItem[]) => {
     for (let i = 0; i < sortedItems.length; i++) {
       const newOrder = i + 1;
       if (sortedItems[i].sortOrder !== newOrder) {
