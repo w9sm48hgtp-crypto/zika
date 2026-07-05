@@ -89,6 +89,31 @@ export interface SoundTrack {
   createdAt: number;
 }
 
+/** Todo 分类 */
+export interface TodoCategory {
+  id?: number;
+  name: string;
+  sortOrder: number;
+  createdAt: number;
+}
+
+/** Todo 项目 */
+export interface TodoItem {
+  id?: number;
+  categoryId: number;
+  text: string;
+  completed: boolean;
+  sortOrder: number;
+  createdAt: number;
+}
+
+/** Todo 统计数据 */
+export interface TodoStats {
+  totalCount: number;    // 历史累计完成数
+  todayCount: number;    // 今日完成数
+  todayDate: string;     // YYYY-MM-DD，用于判断跨天
+}
+
 /** 应用设置 */
 export interface AppSettings {
   key: string;
@@ -107,6 +132,8 @@ class ZiKaDatabase extends Dexie {
   warmMessages!: EntityTable<WarmMessage, 'id'>;
   soundTracks!: EntityTable<SoundTrack, 'id'>;
   settings!: EntityTable<AppSettings, 'key'>;
+  todoCategories!: EntityTable<TodoCategory, 'id'>;
+  todoItems!: EntityTable<TodoItem, 'id'>;
 
   constructor() {
     super('ZiKaDatabase');
@@ -157,6 +184,12 @@ class ZiKaDatabase extends Dexie {
           });
         }
       }
+    });
+
+    // v6: 新增 Todo 分类和项目表
+    this.version(6).stores({
+      todoCategories: '++id, sortOrder',
+      todoItems: '++id, categoryId, sortOrder',
     });
   }
 }

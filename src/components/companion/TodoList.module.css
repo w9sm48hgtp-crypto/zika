@@ -1,0 +1,329 @@
+/* ===== Todo 区域 ===== */
+.todoSection {
+  margin-top: 4px;
+}
+
+.sectionTitle {
+  display: inline-block;
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  margin-top: 14px;
+  margin-bottom: 12px;
+  font-weight: 500;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+}
+
+.loading {
+  text-align: center;
+  color: var(--color-text-hint);
+  font-size: var(--font-size-sm);
+  padding: 16px 0;
+}
+
+/* ===== 累计计数器卡片 ===== */
+.counterCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.counterTotal {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.counterTotal strong {
+  color: var(--color-accent);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.todayLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-hint);
+  margin-bottom: 0;
+}
+
+/* ===== 每日计划卡片 ===== */
+.dailyCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+/* ===== 分类卡片 ===== */
+.categoryCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.catHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-bg);
+}
+
+.catName {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.catActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sortBtn {
+  padding: 4px 10px;
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+}
+
+.catDeleteBtn {
+  padding: 4px 10px;
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-radius: var(--radius-sm);
+}
+
+/* ===== 项目行 ===== */
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-bg);
+}
+
+.itemRow:last-child {
+  border-bottom: none;
+}
+
+.itemDone {
+  opacity: 0.55;
+}
+
+.checkBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--color-accent-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--color-accent);
+  flex-shrink: 0;
+  transition: all 0.15s;
+  background: transparent;
+}
+
+.checkBtn:active {
+  background: var(--color-accent-soft);
+}
+
+.checkDone {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}
+
+.itemText {
+  flex: 1;
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  word-break: break-word;
+}
+
+.itemTextDone {
+  flex: 1;
+  font-size: var(--font-size-md);
+  color: var(--color-text-hint);
+  text-decoration: line-through;
+  word-break: break-word;
+}
+
+.itemEditBtn {
+  padding: 2px 8px;
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.itemEditBtn:active {
+  opacity: 1;
+}
+
+.itemDeleteBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--color-text-hint);
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.itemDeleteBtn:active {
+  opacity: 1;
+  color: var(--color-danger);
+}
+
+/* 编辑模式 */
+.editInput {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  min-width: 0;
+}
+
+.editSaveBtn {
+  padding: 4px 10px;
+  font-size: var(--font-size-xs);
+  color: #fff;
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.editCancelBtn {
+  padding: 4px 8px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+  flex-shrink: 0;
+}
+
+/* ===== 已完成分割线 ===== */
+.doneDivider {
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+  padding: 8px 0 4px;
+  opacity: 0.6;
+}
+
+/* ===== 添加项目 ===== */
+.addItemRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--color-bg);
+}
+
+.addItemInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--color-accent-light);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+
+.addItemInput::placeholder {
+  color: var(--color-text-hint);
+}
+
+.addItemBtn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.addItemBtn:disabled {
+  opacity: 0.4;
+}
+
+/* ===== 新建分类 ===== */
+.newCatBtn {
+  display: block;
+  width: 100%;
+  padding: 14px 0;
+  text-align: center;
+  color: var(--color-accent);
+  font-size: var(--font-size-md);
+  background: var(--color-surface);
+  border: 2px dashed var(--color-accent-light);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+}
+
+.newCatBtn:active {
+  background: var(--color-accent-soft);
+}
+
+.addCatRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+
+.addCatInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--color-accent-light);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+
+.addCatInput::placeholder {
+  color: var(--color-text-hint);
+}
+
+.addCatConfirmBtn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.addCatConfirmBtn:disabled {
+  opacity: 0.4;
+}
+
+.addCatCancelBtn {
+  padding: 8px 12px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-hint);
+  flex-shrink: 0;
+}

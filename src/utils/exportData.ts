@@ -14,6 +14,10 @@ export const EXPORT_MODULES: ExportModule[] = [
   { key: 'chatSettings', label: '聊天设置', description: '头像、昵称、回复延迟、条数、震动等' },
   { key: 'encouragementMessages', label: '陪伴鼓励语句', description: '各场景开始/结束鼓励语句' },
   { key: 'moodTags', label: '状态标签', description: '我的/他的/通用状态标签' },
+  { key: 'dailyRecords', label: '每日记录', description: '每日心情、小纸条、留言、生理期记录' },
+  { key: 'letters', label: '书信', description: '所有写信和回信内容' },
+  { key: 'companionRecords', label: '陪伴记录', description: '学习/吃饭/睡觉/自定义陪伴计时记录' },
+  { key: 'todo', label: 'Todo 计划', description: '累计完成数、每日计划、自定义分类和项目' },
 ];
 
 export interface ExportData {
@@ -65,6 +69,32 @@ export async function exportModules(moduleKeys: string[]): Promise<ExportData> {
         modules.moodTags = tags;
         break;
       }
+      case 'dailyRecords': {
+        const records = await db.dailyRecords.toArray();
+        modules.dailyRecords = records;
+        break;
+      }
+      case 'letters': {
+        const letters = await db.letters.toArray();
+        modules.letters = letters;
+        break;
+      }
+      case 'companionRecords': {
+        const records = await db.companionRecords.toArray();
+        modules.companionRecords = records;
+        break;
+      }
+      case 'todo': {
+        const statsRow = await db.settings.get('todoStats');
+        const categories = await db.todoCategories.toArray();
+        const todoItems = await db.todoItems.toArray();
+        modules.todo = {
+          stats: statsRow?.value ?? { totalCount: 0, todayCount: 0, todayDate: '' },
+          categories,
+          items: todoItems,
+        };
+        break;
+      }
     }
   }
 
@@ -103,6 +133,24 @@ export async function estimateModuleSizes(): Promise<Record<string, number>> {
 
   const tags = await db.moodTags.toArray();
   sizes.moodTags = new Blob([JSON.stringify(tags)]).size;
+
+  const dailyRecords = await db.dailyRecords.toArray();
+  sizes.dailyRecords = new Blob([JSON.stringify(dailyRecords)]).size;
+
+  const letters = await db.letters.toArray();
+  sizes.letters = new Blob([JSON.stringify(letters)]).size;
+
+  const companionRecords = await db.companionRecords.toArray();
+  sizes.companionRecords = new Blob([JSON.stringify(companionRecords)]).size;
+
+  const todoStatsRow = await db.settings.get('todoStats');
+  const todoCategories = await db.todoCategories.toArray();
+  const todoItemsAll = await db.todoItems.toArray();
+  sizes.todo = new Blob([JSON.stringify({
+    stats: todoStatsRow?.value ?? {},
+    categories: todoCategories,
+    items: todoItemsAll,
+  })]).size;
 
   return sizes;
 }

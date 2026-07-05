@@ -8,6 +8,7 @@ import ProfilePage from './pages/ProfilePage';
 import CardLibraryPage from './pages/CardLibraryPage';
 import CompanionHistoryPage from './pages/CompanionHistoryPage';
 import DataManagePage from './pages/DataManagePage';
+import TodoSortPage from './pages/TodoSortPage';
 import AvatarSettingsPage from './pages/profile/AvatarSettingsPage';
 import ChatSettingsPage from './pages/profile/ChatSettingsPage';
 import ReplyRatioPage from './pages/profile/ReplyRatioPage';
@@ -28,6 +29,7 @@ function App() {
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/companion" element={<CompanionPage />} />
             <Route path="/companion/history" element={<CompanionHistoryPage />} />
+            <Route path="/companion/todo-sort/:categoryId" element={<TodoSortPage />} />
             <Route path="/daily" element={<DailyPage />} />
             <Route path="/letters" element={<LettersPage />} />
             <Route path="/profile" element={<ProfilePage />} />

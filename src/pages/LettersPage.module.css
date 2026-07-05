@@ -208,7 +208,7 @@
 .replyContent {
   font-size: var(--font-size-md);
   color: var(--color-text-primary);
-  line-height: 1.9;
+  line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
 }

@@ -4,6 +4,7 @@ import { useCompanionStore, formatSeconds } from '../stores/companionStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { pickEncouragement } from '../components/settings/EncouragementManager';
 import { db, type SoundTrack, type CompanionRecord } from '../db';
+import TodoList from '../components/companion/TodoList';
 import styles from './CompanionPage.module.css';
 
 const SCENES: { key: CompanionRecord['scene']; label: string }[] = [
@@ -326,6 +327,9 @@ function CompanionPage() {
       <button className={styles.historyBtn} onClick={() => navigate('/companion/history')}>
         查看陪伴记录
       </button>
+
+      {/* 每日 Todo List */}
+      <TodoList partnerName={partnerName || '他'} />
     </div>
   );
 }

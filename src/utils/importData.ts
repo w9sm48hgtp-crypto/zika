@@ -117,6 +117,110 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
         if (toAdd.length > 0) await db.moodTags.bulkAdd(toAdd as any);
         break;
       }
+      case 'dailyRecords': {
+        if (!Array.isArray(value)) continue;
+        const existing = await db.dailyRecords.toArray();
+        const existingDates = new Set(existing.map(r => r.date));
+        const toAdd = value.filter((r: { date: string }) => !existingDates.has(r.date))
+          .map(({ id, ...rest }: { id?: number; date: string; userNotes?: string[]; partnerNote?: string; userMoodTags?: string[]; partnerMoodTag?: string; partnerMoodTime?: number }) => ({
+            date: rest.date,
+            userNotes: rest.userNotes || [],
+            partnerNote: rest.partnerNote,
+            userMoodTags: rest.userMoodTags || [],
+            partnerMoodTag: rest.partnerMoodTag,
+            partnerMoodTime: rest.partnerMoodTime,
+          }));
+        if (toAdd.length > 0) await db.dailyRecords.bulkAdd(toAdd as any);
+        break;
+      }
+      case 'letters': {
+        if (!Array.isArray(value)) continue;
+        const toAdd = value.map(({ id, ...rest }: { id?: number; userContent: string; replyContent?: string; sentAt: number; repliedAt?: number }) => ({
+          userContent: rest.userContent,
+          replyContent: rest.replyContent,
+          sentAt: rest.sentAt,
+          repliedAt: rest.repliedAt,
+        }));
+        if (toAdd.length > 0) await db.letters.bulkAdd(toAdd as any);
+        break;
+      }
+      case 'companionRecords': {
+        if (!Array.isArray(value)) continue;
+        const toAdd = value.map(({ id, ...rest }: { id?: number; scene: string; customSceneName?: string; mode: string; targetDuration?: number; actualDuration?: number; startTime: number; endTime?: number; status: string }) => ({
+          scene: rest.scene,
+          customSceneName: rest.customSceneName,
+          mode: rest.mode,
+          targetDuration: rest.targetDuration,
+          actualDuration: rest.actualDuration,
+          startTime: rest.startTime,
+          endTime: rest.endTime,
+          status: rest.status,
+        }));
+        if (toAdd.length > 0) await db.companionRecords.bulkAdd(toAdd as any);
+        break;
+      }
+      case 'todo': {
+        if (!value || typeof value !== 'object') continue;
+        const todoData = value as { stats?: { totalCount: number; todayCount: number; todayDate: string }; categories?: unknown[]; items?: unknown[] };
+
+        // 合并统计数据（保留较大的历史总计）
+        if (todoData.stats) {
+          const existingRow = await db.settings.get('todoStats');
+          const existing: { totalCount: number; todayCount: number; todayDate: string } = (existingRow?.value as any) ?? { totalCount: 0, todayCount: 0, todayDate: '' };
+          const mergedStats = {
+            totalCount: Math.max(existing.totalCount, todoData.stats.totalCount),
+            todayCount: existing.todayCount + todoData.stats.todayCount,
+            todayDate: existing.todayDate || todoData.stats.todayDate,
+          };
+          await db.settings.put({ key: 'todoStats', value: mergedStats });
+        }
+
+        // 合并分类（同名不重复创建）
+        if (Array.isArray(todoData.categories)) {
+          const existingCats = await db.todoCategories.toArray();
+          const existingNames = new Set(existingCats.map(c => c.name));
+          const toAdd = todoData.categories
+            .filter((c: any) => !existingNames.has(c.name))
+            .map((c: any) => ({
+              name: c.name,
+              sortOrder: c.sortOrder ?? Date.now(),
+              createdAt: c.createdAt ?? Date.now(),
+            }));
+          if (toAdd.length > 0) await db.todoCategories.bulkAdd(toAdd as any);
+        }
+
+        // 合并项目（同分类下同文本不重复创建）
+        if (Array.isArray(todoData.items)) {
+          const existingItems = await db.todoItems.toArray();
+          // 重新加载分类以获取新导入的 ID
+          const allCats = await db.todoCategories.toArray();
+          const toAdd: any[] = [];
+          for (const item of todoData.items as any[]) {
+            // 按文本 + 分类匹配
+            const dup = existingItems.find(
+              ei => ei.text === item.text && ei.categoryId === item.categoryId
+            );
+            if (!dup) {
+              // 尝试匹配到新分类 ID（名称匹配）
+              let catId = item.categoryId;
+              const oldCat = (todoData.categories as any[])?.find((c: any) => c.id === item.categoryId);
+              if (oldCat) {
+                const newCat = allCats.find(c => c.name === oldCat.name);
+                if (newCat) catId = newCat.id!;
+              }
+              toAdd.push({
+                categoryId: catId,
+                text: item.text,
+                completed: item.completed ?? false,
+                sortOrder: item.sortOrder ?? Date.now(),
+                createdAt: item.createdAt ?? Date.now(),
+              });
+            }
+          }
+          if (toAdd.length > 0) await db.todoItems.bulkAdd(toAdd as any);
+        }
+        break;
+      }
     }
   }
 }
@@ -129,6 +233,10 @@ function getModuleLabel(key: string): string {
     chatSettings: '聊天设置',
     encouragementMessages: '陪伴鼓励语句',
     moodTags: '状态标签',
+    dailyRecords: '每日记录',
+    letters: '书信',
+    companionRecords: '陪伴记录',
+    todo: 'Todo 计划',
   };
   return map[key] || key;
 }
