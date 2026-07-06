@@ -46,3 +46,19 @@
   margin-top: 8px;
   font-size: var(--font-size-sm);
 }
+
+/* 时间分隔符：居中灰色小字，样式同拍一拍 */
+.timeDivider {
+  text-align: center;
+  margin-bottom: 8px;
+  animation: fadeIn 0.3s ease;
+}
+
+.timeDividerText {
+  display: inline-block;
+  color: var(--color-text-hint);
+  font-size: var(--font-size-xs);
+  background: var(--color-orange-soft);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}

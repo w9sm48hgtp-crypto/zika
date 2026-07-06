@@ -8,6 +8,17 @@ import { TypingIndicator } from '../components/chat/TypingIndicator';
 import { db, type ChatMessage } from '../db';
 import styles from './ChatPage.module.css';
 
+/** 两条消息间隔超过此值（毫秒）则显示时间分隔符 */
+const TIME_DIVIDER_GAP = 30 * 60 * 1000; // 30分钟
+
+/** 格式化为 24 小时制时间，如 "14:30" */
+function formatTime24(ts: number): string {
+  const d = new Date(ts);
+  const h = String(d.getHours()).padStart(2, '0');
+  const m = String(d.getMinutes()).padStart(2, '0');
+  return `${h}:${m}`;
+}
+
 const SEED_CARDS = [
   '我也想你呀',
   '今天过得怎么样？',
@@ -44,6 +55,7 @@ function ChatPage() {
 
   const [quotedMessage, setQuotedMessage] = useState<ChatMessage | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messageListRef = useRef<HTMLDivElement>(null);
   const isLoaded = useRef(false);
 
   useEffect(() => {
@@ -55,9 +67,22 @@ function ChatPage() {
     }
   }, [loadSettings, loadMessages]);
 
+  // 消息变化时滚动到底部
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+    // 用 requestAnimationFrame 确保 DOM 已渲染
+    requestAnimationFrame(() => {
+      if (messageListRef.current) {
+        messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+      }
+    });
+  }, [messages]);
+
+  // typing 状态变化时也滚动到底部
+  useEffect(() => {
+    if (isTyping && messageListRef.current) {
+      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+    }
+  }, [isTyping]);
 
   // 用户发送消息
   const handleSend = useCallback(async (
@@ -104,6 +129,7 @@ function ChatPage() {
 
       <div
         className={styles.messageList}
+        ref={messageListRef}
         style={chatBackground ? {
           backgroundImage: `url(${chatBackground})`,
           backgroundSize: 'cover',
@@ -118,21 +144,30 @@ function ChatPage() {
           </div>
         )}
 
-        {messages.map((msg) => {
+        {messages.map((msg, i) => {
+          const prevMsg = i > 0 ? messages[i - 1] : null;
+          const showDivider = !prevMsg || (msg.timestamp - prevMsg.timestamp >= TIME_DIVIDER_GAP);
+
           const quoted = msg.quotedMessageId
             ? messages.find((m) => m.id === msg.quotedMessageId)
             : null;
           return (
-            <ChatBubble
-              key={msg.id}
-              message={msg}
-              onQuote={(m) => {
-                if (m.sender === 'user' || canBeQuotedByPartner(m)) {
-                  handleQuote(m);
-                }
-              }}
-              quotedMessage={quoted ?? null}
-            />
+            <div key={msg.id}>
+              {showDivider && (
+                <div className={styles.timeDivider}>
+                  <span className={styles.timeDividerText}>{formatTime24(msg.timestamp)}</span>
+                </div>
+              )}
+              <ChatBubble
+                message={msg}
+                onQuote={(m) => {
+                  if (m.sender === 'user' || canBeQuotedByPartner(m)) {
+                    handleQuote(m);
+                  }
+                }}
+                quotedMessage={quoted ?? null}
+              />
+            </div>
           );
         })}
 

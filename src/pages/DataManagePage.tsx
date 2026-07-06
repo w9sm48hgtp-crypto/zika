@@ -1,9 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EXPORT_MODULES, exportModules, downloadJson, estimateModuleSizes, formatSize } from '../utils/exportData';
 import { parseImportData, importModules } from '../utils/importData';
+import { db } from '../db';
 import type { ImportPreview } from '../utils/importData';
 import styles from './DataManagePage.module.css';
+
+/** 清理聊天记录的天数选项 */
+const CLEANUP_OPTIONS = [
+  { days: 7, label: '7天前' },
+  { days: 14, label: '14天前' },
+  { days: 30, label: '30天前' },
+];
 
 function DataManagePage() {
   const navigate = useNavigate();
@@ -20,6 +28,55 @@ function DataManagePage() {
   const [importSelected, setImportSelected] = useState<Set<string>>(new Set());
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // 清理聊天记录状态
+  const [cleanupDays, setCleanupDays] = useState<number | null>(null); // 选中的天数，null=未选
+  const [cleanupCount, setCleanupCount] = useState<number | null>(null); // 待清理条数
+  const [cleanupCounting, setCleanupCounting] = useState(false);
+  const [cleanupDeleting, setCleanupDeleting] = useState(false);
+  const [cleanupDone, setCleanupDone] = useState(false);
+
+  // 点击清理按钮：先统计
+  const handleCleanupCheck = useCallback(async (days: number) => {
+    setCleanupDone(false);
+    setCleanupDays(days);
+    setCleanupCounting(true);
+    setCleanupCount(null);
+    try {
+      const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+      const count = await db.chatMessages.where('timestamp').below(cutoff).count();
+      setCleanupCount(count);
+    } catch (err) {
+      console.error('Cleanup count failed:', err);
+      setCleanupDays(null);
+    } finally {
+      setCleanupCounting(false);
+    }
+  }, []);
+
+  // 确认删除
+  const handleCleanupConfirm = useCallback(async () => {
+    if (cleanupDays == null) return;
+    setCleanupDeleting(true);
+    try {
+      const cutoff = Date.now() - cleanupDays * 24 * 60 * 60 * 1000;
+      await db.chatMessages.where('timestamp').below(cutoff).delete();
+      setCleanupDone(true);
+      setCleanupDays(null);
+      setCleanupCount(null);
+    } catch (err) {
+      console.error('Cleanup failed:', err);
+    } finally {
+      setCleanupDeleting(false);
+    }
+  }, [cleanupDays]);
+
+  // 取消清理
+  const handleCleanupCancel = useCallback(() => {
+    setCleanupDays(null);
+    setCleanupCount(null);
+    setCleanupDone(false);
+  }, []);
 
   // 加载各模块大小
   useEffect(() => {
@@ -221,6 +278,64 @@ function DataManagePage() {
             style={{ display: 'none' }}
             onChange={handleFileSelect}
           />
+        </div>
+
+        {/* 清理聊天记录 */}
+        <div className="card" style={{ marginTop: '12px' }}>
+          <h3 className={styles.sectionTitle}>清理聊天记录</h3>
+          <p className={styles.sectionHint}>删除指定天数前的聊天消息，释放存储空间。操作不可恢复，请先导出备份。</p>
+
+          <div className={styles.cleanupButtons}>
+            {CLEANUP_OPTIONS.map(opt => (
+              <button
+                key={opt.days}
+                className={styles.cleanupBtn}
+                onClick={() => handleCleanupCheck(opt.days)}
+                disabled={cleanupCounting || cleanupDeleting}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 统计中 */}
+          {cleanupCounting && (
+            <p className={styles.cleanupHint}>正在统计...</p>
+          )}
+
+          {/* 确认对话框 */}
+          {cleanupDays != null && cleanupCount != null && !cleanupCounting && (
+            <div className={styles.cleanupConfirm}>
+              <p className={styles.cleanupConfirmText}>
+                {cleanupCount > 0
+                  ? `将删除 ${cleanupCount} 条 ${cleanupDays} 天前的聊天记录，确定吗？`
+                  : `没有 ${cleanupDays} 天前的聊天记录。`}
+              </p>
+              {cleanupCount > 0 && (
+                <div className={styles.cleanupConfirmActions}>
+                  <button
+                    className={styles.cleanupDangerBtn}
+                    onClick={handleCleanupConfirm}
+                    disabled={cleanupDeleting}
+                  >
+                    {cleanupDeleting ? '删除中...' : '确认删除'}
+                  </button>
+                  <button
+                    className={styles.cancelBtn}
+                    onClick={handleCleanupCancel}
+                    disabled={cleanupDeleting}
+                  >
+                    取消
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 完成提示 */}
+          {cleanupDone && (
+            <p className={styles.cleanupSuccess}>聊天记录已清理完成。</p>
+          )}
         </div>
       </div>
     </div>

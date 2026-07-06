@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { ChatMessage } from '../../db';
 import { useSettingsStore } from '../../stores/settingsStore';
 import styles from './ChatBubble.module.css';
@@ -11,23 +10,16 @@ interface Props {
 
 export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
   const { userAvatar, partnerAvatar, partnerName } = useSettingsStore();
-  const [showTime, setShowTime] = useState(false);
 
   const isUser = message.sender === 'user';
   const avatar = isUser ? userAvatar : partnerAvatar;
   const name = isUser ? '我' : partnerName;
 
-  const timeStr = new Date(message.timestamp).toLocaleTimeString('zh-CN', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-
   // 拍一拍：居中灰色小字，无头像无气泡
   if (message.msgType === 'nudge') {
     return (
-      <div className={styles.nudgeRow} onClick={() => setShowTime(!showTime)}>
+      <div className={styles.nudgeRow}>
         <span className={styles.nudgeText}>{message.content}</span>
-        {showTime && <span className={styles.nudgeTime}>{timeStr}</span>}
       </div>
     );
   }
@@ -39,7 +31,6 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
     const options = lines.slice(1);
     return (
       <div className={`${styles.bubbleRow} ${isUser ? styles.rowRight : styles.rowLeft}`}
-        onClick={() => setShowTime(!showTime)}
         onDoubleClick={() => onQuote?.(message)}
       >
         <div className={styles.avatar}>
@@ -59,7 +50,6 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
             ))}
           </div>
         </div>
-        {showTime && <div className={styles.time}>{timeStr}</div>}
       </div>
     );
   }
@@ -68,7 +58,6 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
   if (message.msgType === 'choice_a') {
     return (
       <div className={`${styles.bubbleRow} ${isUser ? styles.rowRight : styles.rowLeft}`}
-        onClick={() => setShowTime(!showTime)}
         onDoubleClick={() => onQuote?.(message)}
       >
         <div className={styles.avatar}>
@@ -83,7 +72,6 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
         <div className={`${styles.choiceBox} ${isUser ? styles.choiceSelf : styles.choicePartner}`}>
           <div className={styles.choiceAnswer}>{message.content}</div>
         </div>
-        {showTime && <div className={styles.time}>{timeStr}</div>}
       </div>
     );
   }
@@ -110,7 +98,6 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
   return (
     <div
       className={`${styles.bubbleRow} ${isUser ? styles.rowRight : styles.rowLeft}`}
-      onClick={() => setShowTime(!showTime)}
       onDoubleClick={() => onQuote?.(message)}
     >
       <div className={styles.avatar}>
@@ -131,8 +118,6 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
         )}
         {renderContent()}
       </div>
-
-      {showTime && <div className={styles.time}>{timeStr}</div>}
     </div>
   );
 }

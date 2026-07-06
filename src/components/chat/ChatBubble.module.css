@@ -99,12 +99,6 @@
   border-radius: var(--radius-full);
 }
 
-.nudgeTime {
-  color: var(--color-text-hint);
-  font-size: 10px;
-  margin-left: 6px;
-}
-
 /* ===== 选择题：银白色框 ===== */
 .choiceBox {
   max-width: 78%;
@@ -170,18 +164,3 @@
   border-left: 2px solid var(--color-accent-light);
 }
 
-.time {
-  position: absolute;
-  bottom: -18px;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-hint);
-  white-space: nowrap;
-}
-
-.rowRight .time {
-  right: 48px;
-}
-
-.rowLeft .time {
-  left: 48px;
-}
