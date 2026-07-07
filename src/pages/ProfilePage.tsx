@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSettingsStore } from '../stores/settingsStore';
 import { APP_VERSION } from '../version';
+import subStyles from './profile/SubPage.module.css';
 import styles from './ProfilePage.module.css';
 
 const MENU_ITEMS = [
@@ -18,7 +19,7 @@ const MENU_ITEMS = [
 
 function ProfilePage() {
   const navigate = useNavigate();
-  const { loadSettings } = useSettingsStore();
+  const { loadSettings, keepScreenOn, setKeepScreenOn } = useSettingsStore();
   const isLoaded = useRef(false);
 
   useEffect(() => {
@@ -33,6 +34,20 @@ function ProfilePage() {
       <h1 className="page-title">我的</h1>
 
       <div className={styles.menuList}>
+        {/* 屏幕常亮开关 */}
+        <div className={subStyles.settingRow} style={{ padding: '12px 16px', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)' }}>
+          <div>
+            <span style={{ fontSize: 'var(--font-size-md)' }}>屏幕常亮</span>
+            <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-hint)', marginTop: '2px' }}>打开后使用期间屏幕不会自动熄灭</p>
+          </div>
+          <button
+            className={`${subStyles.toggle} ${keepScreenOn ? subStyles.toggleOn : ''}`}
+            onClick={() => setKeepScreenOn(!keepScreenOn)}
+          >
+            {keepScreenOn ? '开' : '关'}
+          </button>
+        </div>
+
         {MENU_ITEMS.map(item => (
           <button
             key={item.path}

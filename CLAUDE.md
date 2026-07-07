@@ -78,6 +78,7 @@ src/
 5. **每阶段完成后**：暂停，等用户确认再进入下一阶段
 6. **每日结束后**：更新 [dev-logs/](dev-logs/) 日志
 7. **遇到需求疑问**：参考 [docs/requirements.md](docs/requirements.md)，仍有疑问则问用户
+8. **⚠️ 每次任何代码改动后**：更新 [src/version.ts](src/version.ts) 中的 `APP_VERSION` 版本号（patch 位 +1，如 `1.6.0` → `1.6.1`），再提交 GitHub
 
 ## 技术约束
 

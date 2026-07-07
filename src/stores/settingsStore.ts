@@ -12,6 +12,7 @@ interface SettingsState {
   partnerAvatar: string;
   partnerName: string;
   vibrationEnabled: boolean;
+  keepScreenOn: boolean;
   chatBackground: string;
 
   loadSettings: () => Promise<void>;
@@ -25,6 +26,7 @@ interface SettingsState {
   setPartnerAvatar: (v: string) => Promise<void>;
   setPartnerName: (v: string) => Promise<void>;
   setVibrationEnabled: (v: boolean) => Promise<void>;
+  setKeepScreenOn: (v: boolean) => Promise<void>;
   setChatBackground: (v: string) => Promise<void>;
 }
 
@@ -39,6 +41,7 @@ const defaultSettings: Record<string, unknown> = {
   partnerAvatar: '',
   partnerName: '他',
   vibrationEnabled: true,
+  keepScreenOn: false,
   chatBackground: '',
 };
 
@@ -62,11 +65,12 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   partnerAvatar: '',
   partnerName: '他',
   vibrationEnabled: true,
+  keepScreenOn: false,
   chatBackground: '',
 
   loadSettings: async () => {
     const keys = ['replyDelay', 'replyCountMin', 'replyCountMax', 'textRatio', 'nudgeRatio', 'stickerRatio',
-      'userAvatar', 'partnerAvatar', 'partnerName', 'vibrationEnabled', 'chatBackground'];
+      'userAvatar', 'partnerAvatar', 'partnerName', 'vibrationEnabled', 'keepScreenOn', 'chatBackground'];
     const vals = await Promise.all(keys.map(getSetting));
     set({
       replyDelay: vals[0] as number,
@@ -79,7 +83,8 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       partnerAvatar: vals[7] as string,
       partnerName: vals[8] as string,
       vibrationEnabled: vals[9] as boolean,
-      chatBackground: vals[10] as string,
+      keepScreenOn: vals[10] as boolean,
+      chatBackground: vals[11] as string,
     });
   },
 
@@ -93,5 +98,6 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setPartnerAvatar: async (v) => { await saveSetting('partnerAvatar', v); set({ partnerAvatar: v }); },
   setPartnerName: async (v) => { await saveSetting('partnerName', v); set({ partnerName: v }); },
   setVibrationEnabled: async (v) => { await saveSetting('vibrationEnabled', v); set({ vibrationEnabled: v }); },
+  setKeepScreenOn: async (v) => { await saveSetting('keepScreenOn', v); set({ keepScreenOn: v }); },
   setChatBackground: async (v) => { await saveSetting('chatBackground', v); set({ chatBackground: v }); },
 }));

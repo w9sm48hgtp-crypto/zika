@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useWakeLock } from './hooks/useWakeLock';
 import { BottomNav } from './components/common/BottomNav';
 import ChatPage from './pages/ChatPage';
 import CompanionPage from './pages/CompanionPage';
@@ -20,6 +21,8 @@ import ChatBackgroundPage from './pages/profile/ChatBackgroundPage';
 import './App.css';
 
 function App() {
+  useWakeLock();
+
   return (
     <BrowserRouter>
       <div className="app-container">
