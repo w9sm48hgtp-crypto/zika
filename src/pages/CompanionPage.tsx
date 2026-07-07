@@ -87,9 +87,11 @@ function CompanionPage() {
     const targetSeconds = targetMinutes * 60;
     if (elapsedSeconds >= targetSeconds && !notifiedRef.current) {
       notifiedRef.current = true;
-      if (Notification.permission === 'granted') {
-        new Notification('陪伴计时', { body: '时间到啦！', icon: '/icons/icon-192x192.png' });
-      }
+      try {
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+          new Notification('陪伴计时', { body: '时间到啦！', icon: '/icons/icon-192x192.png' });
+        }
+      } catch { /* WebView 可能不支持 Notification */ }
       if (vibrationEnabled && navigator.vibrate) {
         navigator.vibrate([300, 100, 300]);
       }
@@ -119,14 +121,22 @@ function CompanionPage() {
 
   // 请求通知权限并开始
   const handleStart = async () => {
-    if (Notification.permission === 'default') {
-      await Notification.requestPermission();
-    }
-    // 随机鼓励语句
-    const msg = await pickEncouragement(scene, 'start');
-    setStartMsg(msg);
+    try {
+      // 非阻塞请求通知权限（安卓 WebView 可能不支持 Notification API）
+      if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
+    } catch { /* 通知权限请求失败不影响计时器启动 */ }
+
+    // 先启动计时器，不等待鼓励语句
+    startTimer().catch(() => {});
     setEndMsg(null);
-    await startTimer();
+
+    // 鼓励语句异步加载（不阻塞计时）
+    try {
+      const msg = await pickEncouragement(scene, 'start');
+      setStartMsg(msg);
+    } catch { /* 鼓励语句加载失败不影响计时 */ }
   };
 
   // 手动结束

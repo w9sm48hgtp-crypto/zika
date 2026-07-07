@@ -101,14 +101,6 @@ export const useDailyStore = create<DailyState>((set, get) => ({
       }
     }
 
-    // 清理旧数据：移除所有非今天的伙伴状态
-    for (const r of list) {
-      if (r.date !== today && r.partnerMoodTag) {
-        await db.dailyRecords.update(r.id!, { partnerMoodTag: undefined, partnerMoodTime: undefined });
-        map[r.date] = { ...map[r.date], partnerMoodTag: undefined, partnerMoodTime: undefined };
-      }
-    }
-
     for (const r of toAdd) {
       const id = await db.dailyRecords.add(r);
       r.id = id as number;

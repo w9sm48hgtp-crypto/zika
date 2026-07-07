@@ -280,9 +280,13 @@ function DailyPage() {
           <div className={styles.detailSectionBox}>
             <h4 className={styles.detailTitle}>他的状态</h4>
             {partnerRevealed && selectedRecord?.partnerMoodTag ? (
-              <p className={styles.detailAccent}>{companionName}今天觉得「{selectedRecord.partnerMoodTag}」</p>
-            ) : (
+              <p className={styles.detailAccent}>
+                {companionName}{selectedDate === today ? '今天' : '那天'}觉得「{selectedRecord.partnerMoodTag}」
+              </p>
+            ) : selectedDate === today ? (
               <p className={styles.detailHint}>{companionName}还没有记录今日状态</p>
+            ) : (
+              <p className={styles.detailHint}>那天没有记录{companionName}的状态</p>
             )}
           </div>
 
