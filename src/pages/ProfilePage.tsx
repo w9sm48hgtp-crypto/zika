@@ -10,12 +10,13 @@ const MENU_ITEMS = [
   { path: '/profile/chat', label: '聊天设置' },
   { path: '/profile/chat-background', label: '聊天背景管理' },
   { path: '/profile/reply-ratio', label: '回复出现比例' },
-  { path: '/cards', label: '字卡库管理' },
-  { path: '/profile/sounds', label: '白噪音管理' },
-  { path: '/profile/encouragement', label: '陪伴语句管理' },
-  { path: '/profile/mood-tags', label: '状态标签管理' },
-  { path: '/profile/period-messages', label: '生理期安慰语句' },
+  { path: '/cards', label: '内容管理' },
 ];
+
+/** 短标题（≤5字）用方格卡片，长标题用通栏长条 */
+function isCompact(label: string) {
+  return label.length <= 5;
+}
 
 function ProfilePage() {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ function ProfilePage() {
 
       <div className={styles.menuList}>
         {/* 屏幕常亮开关 */}
-        <div className={subStyles.settingRow} style={{ padding: '12px 16px', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)' }}>
+        <div className={subStyles.settingRow} style={{ width: '100%', padding: '12px 16px', background: 'var(--color-surface-gradient)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-sm)' }}>
           <div>
             <span style={{ fontSize: 'var(--font-size-md)' }}>屏幕常亮</span>
             <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-hint)', marginTop: '2px' }}>打开后使用期间屏幕不会自动熄灭</p>
@@ -43,28 +44,26 @@ function ProfilePage() {
           <button
             className={`${subStyles.toggle} ${keepScreenOn ? subStyles.toggleOn : ''}`}
             onClick={() => setKeepScreenOn(!keepScreenOn)}
-          >
-            {keepScreenOn ? '开' : '关'}
-          </button>
+            aria-label={keepScreenOn ? '关闭屏幕常亮' : '开启屏幕常亮'}
+          />
         </div>
 
         {MENU_ITEMS.map(item => (
           <button
             key={item.path}
-            className={styles.menuItem}
+            className={isCompact(item.label) ? styles.menuCard : styles.menuItem}
             onClick={() => navigate(item.path)}
           >
             <span>{item.label}</span>
-            <span className={styles.arrow}>›</span>
+            {!isCompact(item.label) && <span className={styles.arrow}>›</span>}
           </button>
         ))}
 
         <button
-          className={styles.menuItem}
+          className={styles.menuCard}
           onClick={() => navigate('/data')}
         >
           <span>数据管理</span>
-          <span className={styles.arrow}>›</span>
         </button>
       </div>
 

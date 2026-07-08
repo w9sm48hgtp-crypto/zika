@@ -62,9 +62,8 @@ function ChatSettingsPage() {
             <button
               className={`${styles.toggle} ${vibrationEnabled ? styles.toggleOn : ''}`}
               onClick={() => setVibrationEnabled(!vibrationEnabled)}
-            >
-              {vibrationEnabled ? '开' : '关'}
-            </button>
+              aria-label={vibrationEnabled ? '关闭震动提醒' : '开启震动提醒'}
+            />
           </div>
         </div>
       </div>

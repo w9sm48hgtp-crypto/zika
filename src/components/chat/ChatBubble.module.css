@@ -59,21 +59,27 @@
   padding: 10px 14px;
   border-radius: var(--radius-lg);
   font-size: var(--font-size-md);
-  line-height: 1.5;
+  line-height: 1.6;
   word-break: break-word;
   position: relative;
 }
 
 .bubbleSelf {
-  background: var(--color-bubble-self);
-  border: 1px solid var(--color-accent);
+  background: rgba(232, 239, 247, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(97, 118, 171, 0.18);
   border-top-right-radius: var(--radius-sm);
+  box-shadow: 0 1px 3px rgba(74, 55, 40, 0.08);
 }
 
 .bubblePartner {
-  background: var(--color-bubble-partner);
-  border: 1px solid var(--color-orange);
+  background: rgba(253, 245, 234, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(226, 140, 67, 0.18);
   border-top-left-radius: var(--radius-sm);
+  box-shadow: 0 1px 3px rgba(74, 55, 40, 0.08);
 }
 
 .sticker {

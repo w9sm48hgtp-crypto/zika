@@ -15,7 +15,8 @@
   padding: 12px 0;
   border: 2px dashed var(--color-accent-light, #97bee4);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: var(--color-surface-gradient);
+  box-shadow: var(--shadow-sm);
   color: var(--color-accent);
   font-size: var(--font-size-md);
   text-align: center;
@@ -30,7 +31,7 @@
 
 /* ===== 写信区 ===== */
 .composeArea {
-  background: var(--color-surface);
+  background: var(--color-surface-gradient);
   border-radius: var(--radius-md);
   padding: 16px;
   margin-bottom: 16px;
@@ -104,13 +105,14 @@
 .letterList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 /* ===== 单封书信卡片 ===== */
 .letterCard {
-  background: var(--color-surface);
+  background: var(--color-surface-gradient);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: all 0.2s;
 }
@@ -177,7 +179,7 @@
 /* ===== 书信详情展开 ===== */
 .letterBody {
   padding: 0 16px 16px;
-  border-top: 1px solid var(--color-bg);
+  border-top: 1px solid var(--color-divider-light);
 }
 
 .letterContent {

@@ -1,10 +1,11 @@
 /* ===== 字卡 App 设计令牌 ===== */
 :root {
   /* 背景 - 淡橙色 */
-  --color-bg: #fce7c8;
-  --color-bg-warm: #f8d9b0;
+  --color-bg: #faf0d8;
+  --color-bg-warm: #f2d8bc;
   --color-surface: #FFFFFF;
-  --color-surface-hover: #fef5e7;
+  --color-surface-hover: #fdf7ed;
+  --color-surface-gradient: linear-gradient(180deg, #ffffff 0%, #fdf9f3 100%);
 
   /* 文字颜色 - 黑白灰 */
   --color-text-primary: #2d2d2d;
@@ -14,8 +15,8 @@
   /* 聊天气泡 */
   --color-bubble-self: #e8eff7;
   --color-bubble-self-border: #6176ab;
-  --color-bubble-partner: #fdf0e2;
-  --color-bubble-partner-border: #e8d5c0;
+  --color-bubble-partner: #fdf5ea;
+  --color-bubble-partner-border: #e6d4c2;
 
   /* 强调色 - 蓝色（我的操作） */
   --color-accent: #6176ab;
@@ -25,7 +26,7 @@
   /* 橙色 - 对方/温暖元素 */
   --color-orange: #e28c43;
   --color-orange-light: #eca660;
-  --color-orange-soft: #fdf0e2;
+  --color-orange-soft: #fdf5ea;
 
   /* 蓝色 */
   --color-blue: #6176ab;
@@ -55,6 +56,7 @@
 
   /* 字体 */
   --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-heading: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --font-size-xs: 11px;
   --font-size-sm: 13px;
   --font-size-md: 15px;
@@ -62,9 +64,13 @@
   --font-size-xl: 20px;
 
   /* 阴影 */
-  --shadow-sm: 0 1px 2px rgba(74, 55, 40, 0.04);
-  --shadow-md: 0 2px 8px rgba(74, 55, 40, 0.06);
-  --shadow-lg: 0 4px 16px rgba(74, 55, 40, 0.08);
+  --shadow-sm: 0 2px 8px rgba(74, 55, 40, 0.12);
+  --shadow-md: 0 4px 16px rgba(74, 55, 40, 0.15);
+  --shadow-lg: 0 6px 24px rgba(74, 55, 40, 0.18);
+
+  /* 分隔线 - 半透明 */
+  --color-divider: rgba(74, 55, 40, 0.08);
+  --color-divider-light: rgba(74, 55, 40, 0.05);
 
   /* 底部导航栏高度 */
   --navbar-height: 56px;
@@ -95,7 +101,7 @@ body {
   font-family: var(--font-family);
   color: var(--color-text-primary);
   background-color: var(--color-bg);
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
@@ -107,10 +113,9 @@ body {
   max-width: 100%;
 }
 
-/* ===== 全局滚动条 ===== */
+/* ===== 全局滚动条（隐藏） ===== */
 ::-webkit-scrollbar {
-  width: 0;
-  height: 0;
+  display: none;
 }
 
 /* ===== 通用按钮重置 ===== */
@@ -130,6 +135,12 @@ input, textarea {
   border: none;
   outline: none;
   background: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus,
+textarea:focus {
+  box-shadow: 0 0 0 2px rgba(97, 118, 171, 0.20);
 }
 
 a {
@@ -144,7 +155,7 @@ a {
 
 /* ===== 通用动画 ===== */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -162,3 +173,9 @@ a {
   0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
   30% { opacity: 1; transform: translateY(-4px); }
 }
+
+@keyframes messageIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+

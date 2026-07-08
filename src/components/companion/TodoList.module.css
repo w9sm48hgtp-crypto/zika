@@ -10,7 +10,7 @@
   margin-top: 14px;
   margin-bottom: 12px;
   font-weight: 500;
-  background: var(--color-surface);
+  background: var(--color-bg);
   border-radius: var(--radius-md);
   padding: 8px 14px;
 }
@@ -24,11 +24,12 @@
 
 /* ===== 累计计数器卡片 ===== */
 .counterCard {
-  background: var(--color-surface);
+  background: var(--color-surface-gradient);
   border-radius: var(--radius-md);
   padding: 16px;
   margin-bottom: 12px;
   text-align: center;
+  box-shadow: var(--shadow-sm);
 }
 
 .counterTotal {
@@ -52,18 +53,20 @@
 
 /* ===== 每日计划卡片 ===== */
 .dailyCard {
-  background: var(--color-surface);
+  background: var(--color-surface-gradient);
   border-radius: var(--radius-md);
   padding: 14px 16px;
   margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
 }
 
 /* ===== 分类卡片 ===== */
 .categoryCard {
-  background: var(--color-surface);
+  background: var(--color-surface-gradient);
   border-radius: var(--radius-md);
   padding: 14px 16px;
   margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
 }
 
 .catHeader {
@@ -72,7 +75,7 @@
   justify-content: space-between;
   margin-bottom: 10px;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--color-bg);
+  border-bottom: 1px solid var(--color-divider-light);
 }
 
 .catName {
@@ -109,7 +112,7 @@
   align-items: center;
   gap: 10px;
   padding: 10px 0;
-  border-bottom: 1px solid var(--color-bg);
+  border-bottom: 1px solid var(--color-divider-light);
 }
 
 .itemRow:last-child {
@@ -233,7 +236,7 @@
   gap: 8px;
   margin-top: 10px;
   padding-top: 8px;
-  border-top: 1px dashed var(--color-bg);
+  border-top: 1px dashed var(--color-divider-light);
 }
 
 .addItemInput {
@@ -273,9 +276,10 @@
   text-align: center;
   color: var(--color-accent);
   font-size: var(--font-size-md);
-  background: var(--color-surface);
+  background: var(--color-surface-gradient);
   border: 2px dashed var(--color-accent-light);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   font-weight: 500;
 }
 
@@ -287,7 +291,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  background: var(--color-surface);
+  background: var(--color-bg);
   border-radius: var(--radius-md);
   padding: 12px 14px;
 }

@@ -10,8 +10,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-bubble-partner-border);
+  background: var(--color-surface-gradient);
+  border-bottom: 1px solid var(--color-divider);
   flex-shrink: 0;
 }
 
@@ -22,12 +22,54 @@
 }
 
 .title {
+  font-family: var(--font-heading);
   font-size: var(--font-size-lg);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .spacer {
   width: 48px; /* 与返回按钮对称 */
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--color-bg);
+  flex-shrink: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab:active {
+  background: var(--color-bg-warm);
+}
+
+.tabActive {
+  color: #fff;
+  background: var(--color-accent);
+  box-shadow: none;
+}
+
+.tabActive:active {
+  background: var(--color-accent);
+  opacity: 0.85;
 }
 
 .body {

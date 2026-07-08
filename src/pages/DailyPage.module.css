@@ -1,7 +1,8 @@
 /* ===== 月历 ===== */
 .calendar {
-  background: var(--color-surface);
+  background: var(--color-surface-gradient);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
   margin-bottom: 12px;
 }
@@ -26,15 +27,16 @@
 }
 
 .monthLabel {
+  font-family: var(--font-heading);
   font-size: var(--font-size-lg);
-  font-weight: 500;
+  font-weight: 700;
   color: var(--color-text-primary);
 }
 
 .weekRow {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  border-bottom: 1px solid var(--color-bg);
+  border-bottom: 1px solid var(--color-divider-light);
 }
 
 .weekHeader {
@@ -169,8 +171,9 @@
 
 /* ===== 详情面板 ===== */
 .detailPanel {
-  background: var(--color-surface);
+  background: var(--color-surface-gradient);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   padding: 16px;
   margin-bottom: 12px;
   animation: fadeIn 0.2s ease;

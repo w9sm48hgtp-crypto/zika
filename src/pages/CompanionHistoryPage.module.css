@@ -13,8 +13,9 @@
 }
 
 .headerTitle {
+  font-family: var(--font-heading);
   font-size: var(--font-size-lg);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text-primary);
 }
 
@@ -26,13 +27,14 @@
 .statsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
 .statCard {
-  background: var(--color-surface);
+  background: var(--color-surface-gradient);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   padding: 16px;
   text-align: center;
 }
@@ -62,7 +64,7 @@
 .catPill {
   padding: 7px 18px;
   border-radius: var(--radius-full);
-  background: var(--color-surface);
+  background: var(--color-surface-gradient);
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
   transition: all 0.2s;
@@ -95,7 +97,7 @@
 .recordList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   padding-bottom: 24px;
 }
 
@@ -104,8 +106,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  background: var(--color-surface);
+  background: var(--color-surface-gradient);
   border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 .recordInfo {
