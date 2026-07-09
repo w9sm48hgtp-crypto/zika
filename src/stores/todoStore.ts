@@ -44,16 +44,13 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     const statsRow = await db.settings.get('todoStats');
     const stats: TodoStats = statsRow?.value as TodoStats | undefined ?? { totalCount: 0, todayCount: 0, todayDate: '' };
 
-    const shouldReset = stats.todayDate !== todayStr() && isAfter5AM();
-    if (shouldReset) {
+    // 只有凌晨5点后才执行跨天重置，5点前不更新日期，确保5点后能正确触发清理
+    if (stats.todayDate !== todayStr() && isAfter5AM()) {
       await db.todoItems.where('categoryId').equals(DAILY_CAT_ID).delete();
       stats.todayCount = 0;
       stats.todayDate = todayStr();
       await db.settings.put({ key: 'todoStats', value: stats });
       return true;
-    } else if (stats.todayDate !== todayStr()) {
-      stats.todayDate = todayStr();
-      await db.settings.put({ key: 'todoStats', value: stats });
     }
     return false;
   },
