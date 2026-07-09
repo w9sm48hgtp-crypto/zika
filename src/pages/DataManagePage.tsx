@@ -8,6 +8,7 @@ import styles from './DataManagePage.module.css';
 
 /** 清理聊天记录的天数选项 */
 const CLEANUP_OPTIONS = [
+  { days: 3, label: '3天前' },
   { days: 7, label: '7天前' },
   { days: 14, label: '14天前' },
   { days: 30, label: '30天前' },

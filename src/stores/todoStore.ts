@@ -20,6 +20,7 @@ interface TodoState {
   items: TodoItem[];        // 全部项目（含每日计划 + 自定义分类）
   loading: boolean;
 
+  checkDailyReset: () => Promise<boolean>;
   loadAll: () => Promise<void>;
   addDailyItem: (text: string) => Promise<void>;
   addCategory: (name: string) => Promise<void>;
@@ -38,25 +39,34 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   items: [],
   loading: false,
 
-  loadAll: async () => {
-    set({ loading: true });
-
-    // 加载统计数据
+  /** 检查是否跨天+5AM，如果是则清空每日计划并重置今日计数。返回 true 表示发生了重置 */
+  checkDailyReset: async (): Promise<boolean> => {
     const statsRow = await db.settings.get('todoStats');
-    let stats: TodoStats = statsRow?.value as TodoStats | undefined ?? { totalCount: 0, todayCount: 0, todayDate: '' };
+    const stats: TodoStats = statsRow?.value as TodoStats | undefined ?? { totalCount: 0, todayCount: 0, todayDate: '' };
 
-    // 凌晨5点后跨天：清空每日计划项目 + 重置今日计数
     const shouldReset = stats.todayDate !== todayStr() && isAfter5AM();
     if (shouldReset) {
-      // 删除所有每日计划项目（categoryId = 0）
       await db.todoItems.where('categoryId').equals(DAILY_CAT_ID).delete();
       stats.todayCount = 0;
       stats.todayDate = todayStr();
       await db.settings.put({ key: 'todoStats', value: stats });
+      return true;
     } else if (stats.todayDate !== todayStr()) {
       stats.todayDate = todayStr();
       await db.settings.put({ key: 'todoStats', value: stats });
     }
+    return false;
+  },
+
+  loadAll: async () => {
+    set({ loading: true });
+
+    // 先检查跨天重置
+    await get().checkDailyReset();
+
+    // 加载统计数据
+    const statsRow = await db.settings.get('todoStats');
+    const stats: TodoStats = statsRow?.value as TodoStats | undefined ?? { totalCount: 0, todayCount: 0, todayDate: '' };
 
     const categories = await db.todoCategories.orderBy('sortOrder').toArray();
     const items = await db.todoItems.orderBy('sortOrder').toArray();

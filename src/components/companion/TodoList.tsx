@@ -105,6 +105,33 @@ function TodoList({ partnerName }: TodoListProps) {
     }
   }, [loadAll]);
 
+  // 定时检查跨天重置（每60秒）
+  useEffect(() => {
+    const { checkDailyReset } = useTodoStore.getState();
+    const timer = setInterval(async () => {
+      const didReset = await checkDailyReset();
+      if (didReset) {
+        loadAll(); // 发生了跨天重置，刷新界面
+      }
+    }, 60_000);
+    return () => clearInterval(timer);
+  }, [loadAll]);
+
+  // 页面恢复可见时检查跨天重置
+  useEffect(() => {
+    const handleVisibility = async () => {
+      if (document.visibilityState === 'visible') {
+        const { checkDailyReset } = useTodoStore.getState();
+        const didReset = await checkDailyReset();
+        if (didReset) {
+          loadAll();
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [loadAll]);
+
   const handleAddCat = async () => {
     const name = newCat.trim();
     if (!name) return;
