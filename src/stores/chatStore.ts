@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { db, type ChatMessage, type Card } from '../db';
 import { pickCardsWithRatio } from '../utils/cardExtractor';
+import { playMessageSound } from '../utils/sound';
 import { useSettingsStore } from './settingsStore';
 
 // 模块级定时器，不受 React 组件卸载影响
@@ -8,7 +9,9 @@ let replyTimerId: ReturnType<typeof setTimeout> | null = null;
 let replyKind: 'cards' | 'choice' | 'both' | null = null;
 let replyChoiceContent: string = '';
 
-async function executeCardsReply(addPartnerMessage: (card: Card) => Promise<void>) {
+async function executeCardsReply(
+  addPartnerMessage: (card: Card, quoteId?: number, quoteContent?: string) => Promise<void>
+) {
   const settings = useSettingsStore.getState();
   const min = settings.replyCountMin || 1;
   const max = settings.replyCountMax || 3;
@@ -21,13 +24,51 @@ async function executeCardsReply(addPartnerMessage: (card: Card) => Promise<void
     settings.stickerRatio || 10,
   );
 
+  // 预先收集用户最近 2 回合的消息，作为引用候选池
+  const allMsgs = await db.chatMessages.orderBy('timestamp').reverse().toArray();
+  const quotePool: { id?: number; content: string }[] = [];
+  let userRoundCount = 0;
+  let inUserBlock = false;
+
+  for (const msg of allMsgs) {
+    if (msg.sender === 'user') {
+      quotePool.push(msg);
+      inUserBlock = true;
+    } else {
+      if (inUserBlock) {
+        userRoundCount++;
+        inUserBlock = false;
+      }
+      if (userRoundCount >= 2) break;
+    }
+  }
+  if (inUserBlock && userRoundCount < 2) {
+    userRoundCount++;
+  }
+
   if (cards.length === 0) {
     const fallback: Card = { type: 'text', content: '先去「我的」给我加点字卡吧~', createdAt: Date.now(), updatedAt: Date.now() };
-    await addPartnerMessage(fallback);
+    // 单条消息也独立判断引用
+    let qId: number | undefined;
+    let qContent: string | undefined;
+    if (quotePool.length > 0 && Math.random() < 0.05) {
+      const picked = quotePool[Math.floor(Math.random() * quotePool.length)];
+      qId = picked.id;
+      qContent = picked.content;
+    }
+    await addPartnerMessage(fallback, qId, qContent);
   } else {
-    for (const card of cards) {
+    for (let i = 0; i < cards.length; i++) {
       await new Promise((r) => setTimeout(r, 500 + Math.random() * 1000));
-      await addPartnerMessage(card);
+      // 每条回复消息独立 5% 概率引用，每次最多引用一句
+      let qId: number | undefined;
+      let qContent: string | undefined;
+      if (quotePool.length > 0 && Math.random() < 0.05) {
+        const picked = quotePool[Math.floor(Math.random() * quotePool.length)];
+        qId = picked.id;
+        qContent = picked.content;
+      }
+      await addPartnerMessage(cards[i], qId, qContent);
     }
   }
 }
@@ -42,6 +83,8 @@ async function executeChoiceReply(choiceContent: string) {
   const id = await db.chatMessages.add(msg);
   msg.id = id;
   useChatStore.setState((s) => ({ messages: [...s.messages, msg] }));
+  // 收到回复播放提示音
+  playMessageSound();
 }
 
 interface ChatState {
@@ -50,7 +93,7 @@ interface ChatState {
 
   loadMessages: () => Promise<void>;
   sendMessage: (content: string, msgType?: ChatMessage['msgType'], quotedMessageId?: number, quotedContent?: string) => Promise<void>;
-  addPartnerMessage: (card: Card) => Promise<void>;
+  addPartnerMessage: (card: Card, quoteId?: number, quoteContent?: string) => Promise<void>;
   setTyping: (v: boolean) => void;
   clearMessages: () => Promise<void>;
   /** 启动回复定时器（模块级，切屏不中断） */
@@ -80,18 +123,29 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const id = await db.chatMessages.add(userMsg);
     userMsg.id = id;
     set((s) => ({ messages: [...s.messages, userMsg] }));
+    // 发送消息播放提示音
+    playMessageSound();
   },
 
-  addPartnerMessage: async (card) => {
+  addPartnerMessage: async (card, quoteId?, quoteContent?) => {
+    // 如果有引用，msgType 改为 quote
+    const hasQuote = quoteId != null && quoteContent != null;
     const msg: ChatMessage = {
       sender: 'partner',
       content: card.content,
-      msgType: card.type === 'sticker' ? 'image' : card.type === 'nudge' ? 'nudge' : 'text',
+      msgType: hasQuote ? 'quote'
+        : card.type === 'sticker' ? 'image'
+        : card.type === 'nudge' ? 'nudge'
+        : 'text',
+      quotedMessageId: quoteId,
+      quotedContent: quoteContent,
       timestamp: Date.now(),
     };
     const id = await db.chatMessages.add(msg);
     msg.id = id;
     set((s) => ({ messages: [...s.messages, msg] }));
+    // 收到回复播放提示音
+    playMessageSound();
   },
 
   setTyping: (v) => set({ isTyping: v }),

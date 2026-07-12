@@ -153,20 +153,44 @@
 
 /* ===== 引用 ===== */
 .quoteRef {
-  background: rgba(0, 0, 0, 0.03);
-  border-left: 3px solid var(--color-accent-light);
-  padding: 6px 10px;
-  margin-bottom: 6px;
+  background: rgba(97, 118, 171, 0.08);
+  border-left: 3px solid var(--color-accent);
+  padding: 8px 10px;
+  margin-bottom: 8px;
   border-radius: 4px;
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
+  line-height: 1.5;
 }
 
 .quoteBar {
   font-size: var(--font-size-xs);
-  color: var(--color-text-hint);
-  margin-bottom: 4px;
-  padding-left: 6px;
-  border-left: 2px solid var(--color-accent-light);
+  color: var(--color-text-secondary);
+  background: rgba(97, 118, 171, 0.06);
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--color-accent);
+  border-radius: 4px;
+  line-height: 1.4;
+}
+
+/* ===== 长按引用弹出菜单 ===== */
+.quoteMenu {
+  position: fixed;
+  z-index: 999;
+  background: rgba(200, 200, 200, 0.55);
+  color: #333;
+  font-size: var(--font-size-sm);
+  padding: 5px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  animation: fadeIn 0.15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.quoteMenu:active {
+  background: rgba(180, 180, 180, 0.7);
 }
 

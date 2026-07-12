@@ -1,0 +1,173 @@
+/* ===== 文字便签页面 ===== */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.backBtn {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+/* 添加便签按钮 */
+.addNoteBtn {
+  display: block;
+  width: 100%;
+  padding: 12px 0;
+  border: 2px dashed var(--color-accent-light);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-gradient);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-accent);
+  font-size: var(--font-size-md);
+  text-align: center;
+  margin-bottom: 16px;
+  transition: all 0.2s;
+}
+
+.addNoteBtn:active {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}
+
+/* 便签列表 */
+.noteList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 单条便签 — 便签风格 */
+.noteCard {
+  background: #fef9e7;
+  border: 1px solid #e8d9b5;
+  border-radius: 2px 14px 2px 14px;
+  padding: 16px 14px 14px;
+  box-shadow: 1px 3px 10px rgba(139, 115, 85, 0.10);
+  position: relative;
+  animation: fadeIn 0.25s ease;
+}
+
+/* 胶带效果 */
+.noteCard::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 36px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 1px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.noteContent {
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  line-height: 1.7;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.noteTime {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+  margin-top: 10px;
+  text-align: right;
+}
+
+.noteActions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.editBtn {
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+  padding: 2px 8px;
+}
+
+.delBtn {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  padding: 2px 8px;
+}
+
+/* 编辑区 */
+.editRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editInput {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-accent-light);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  background: #fffef9;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  resize: vertical;
+  line-height: 1.7;
+}
+
+.editInput::placeholder {
+  color: var(--color-text-hint);
+}
+
+.editButtons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.saveBtn {
+  padding: 6px 16px;
+  font-size: var(--font-size-sm);
+  color: #fff;
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+}
+
+.saveBtn:disabled {
+  opacity: 0.4;
+}
+
+.cancelBtn {
+  padding: 6px 12px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-hint);
+}
+
+/* 空状态 */
+.emptyHint {
+  text-align: center;
+  color: var(--color-text-hint);
+  font-size: var(--font-size-sm);
+  padding: 48px 0;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}

@@ -114,6 +114,31 @@ export interface TodoStats {
   todayDate: string;     // YYYY-MM-DD，用于判断跨天
 }
 
+/** 相册分类 */
+export interface PhotoAlbum {
+  id?: number;
+  name: string;
+  sortOrder: number;
+  createdAt: number;
+}
+
+/** 照片 */
+export interface Photo {
+  id?: number;
+  albumId: number;
+  caption: string;
+  dataUrl: string; // base64 图片数据
+  createdAt: number;
+}
+
+/** 文字便签 */
+export interface StickyNote {
+  id?: number;
+  content: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
 /** 应用设置 */
 export interface AppSettings {
   key: string;
@@ -134,6 +159,9 @@ class ZiKaDatabase extends Dexie {
   settings!: EntityTable<AppSettings, 'key'>;
   todoCategories!: EntityTable<TodoCategory, 'id'>;
   todoItems!: EntityTable<TodoItem, 'id'>;
+  photoAlbums!: EntityTable<PhotoAlbum, 'id'>;
+  photos!: EntityTable<Photo, 'id'>;
+  stickyNotes!: EntityTable<StickyNote, 'id'>;
 
   constructor() {
     super('ZiKaDatabase');
@@ -190,6 +218,13 @@ class ZiKaDatabase extends Dexie {
     this.version(6).stores({
       todoCategories: '++id, sortOrder',
       todoItems: '++id, categoryId, sortOrder',
+    });
+
+    // v7: 新增相册、照片、便签表
+    this.version(7).stores({
+      photoAlbums: '++id, sortOrder',
+      photos: '++id, albumId, createdAt',
+      stickyNotes: '++id, createdAt',
     });
   }
 }

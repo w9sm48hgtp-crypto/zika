@@ -1,5 +1,27 @@
 /* ===== 书信页面 ===== */
 
+/* 页面头部（返回按钮 + 标题） */
+.pageHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.backBtn {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.pageTitle {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
 /* 累计信数 */
 .letterCount {
   text-align: center;
@@ -32,10 +54,12 @@
 /* ===== 写信区 ===== */
 .composeArea {
   background: var(--color-surface-gradient);
+  border: 1px solid var(--color-divider-light);
   border-radius: var(--radius-md);
   padding: 16px;
   margin-bottom: 16px;
   animation: fadeIn 0.2s ease;
+  box-shadow: var(--shadow-sm);
 }
 
 .composeHeader {
@@ -60,15 +84,15 @@
 .letterInput {
   width: 100%;
   min-height: 180px;
-  padding: 12px;
-  border: 1px solid var(--color-orange-light);
+  padding: 14px;
+  border: 1px solid var(--color-divider-light);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-md);
   font-family: inherit;
   color: var(--color-text-primary);
-  background: var(--color-orange-soft);
+  background: var(--color-bg);
   resize: vertical;
-  line-height: 1.8;
+  line-height: 2;
 }
 
 .letterInput::placeholder {
@@ -115,6 +139,7 @@
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: all 0.2s;
+  border: 1px solid var(--color-divider);
 }
 
 .letterCardHeader {
@@ -183,21 +208,95 @@
 }
 
 .letterContent {
+  padding: 16px 4px;
+}
+
+/* ===== 信纸效果（仅信的内容区：从"致xx"到落款） ===== */
+.letterPaper {
+  position: relative;
+  background-color: #FFFEFA;
+  background-image:
+    /* 四角小花边 — 四个小圆点 */
+    radial-gradient(circle at 12px 12px, rgba(180, 165, 145, 0.35) 1.5px, transparent 2px),
+    radial-gradient(circle at calc(100% - 12px) 12px, rgba(180, 165, 145, 0.35) 1.5px, transparent 2px),
+    radial-gradient(circle at 12px calc(100% - 12px), rgba(180, 165, 145, 0.35) 1.5px, transparent 2px),
+    radial-gradient(circle at calc(100% - 12px) calc(100% - 12px), rgba(180, 165, 145, 0.35) 1.5px, transparent 2px),
+    /* 信纸底色 */
+    linear-gradient(180deg, #FFFEFA 0%, #FFFDF7 40%, #FFFCF3 100%);
+  border: 1px solid #E4D9C8;
+  border-radius: 4px;
+  padding: 16px 14px;
+  box-shadow:
+    0 1px 4px rgba(139, 115, 85, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   font-size: var(--font-size-md);
   color: var(--color-text-primary);
-  line-height: 1.9;
-  white-space: pre-wrap;
+  line-height: 2;
+}
+
+/* 信文正文（称呼 + 内容） */
+.letterText {
+  position: relative;
+  z-index: 1;
+}
+
+/* 每条有文字的行 — 底部横线（两侧留白），文字略右于横线起点 */
+.letterLine {
+  line-height: 2;
   word-break: break-word;
-  padding: 14px 0;
+  text-indent: 0.6em;
+  background-image: linear-gradient(
+    to right,
+    transparent 12px,
+    rgba(195, 185, 168, 0.22) 12px,
+    rgba(195, 185, 168, 0.22) calc(100% - 12px),
+    transparent calc(100% - 12px)
+  );
+  background-position: bottom;
+  background-size: 100% 1px;
+  background-repeat: no-repeat;
+}
+
+/* 新段落首行 — 空两格 */
+.letterLineIndent {
+  text-indent: 2em;
+}
+
+/* 空行 — 只占高度，不加横线 */
+.letterEmpty {
+  height: 30px; /* line-height: 2 × 15px font */
+}
+
+/* 落款区 — 名字对齐日期中央 */
+.letterSignature {
+  position: relative;
+  z-index: 1;
+  display: table;
+  margin-left: auto;
+  margin-top: 8px;
+}
+
+/* 落款日期 */
+.letterDateLine {
+  text-align: right;
+  color: var(--color-text-secondary);
+}
+
+/* 落款名字 — 在日期下方居中 */
+.letterNameLine {
+  text-align: center;
+  margin-top: 2px;
+  color: var(--color-text-primary);
+  font-weight: 500;
 }
 
 /* 回信区 */
 .replySection {
   margin-top: 8px;
   padding: 14px 16px;
-  background: var(--color-accent-soft);
+  background: var(--color-surface-gradient);
+  border: 1px solid var(--color-divider-light);
   border-radius: var(--radius-sm);
-  position: relative;
 }
 
 .replyLabel {
@@ -210,8 +309,7 @@
 .replyContent {
   font-size: var(--font-size-md);
   color: var(--color-text-primary);
-  line-height: 1.6;
-  white-space: pre-wrap;
+  line-height: 2;
   word-break: break-word;
 }
 

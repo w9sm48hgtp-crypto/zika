@@ -80,8 +80,7 @@
 }
 
 .daySelected {
-  outline: 2px solid var(--color-accent);
-  outline-offset: -2px;
+  box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 
 /* 经期标记 */
@@ -332,9 +331,9 @@
   line-height: 1.5;
 }
 
-/* 小纸条 */
+/* 小纸条 — 便签式样 */
 .noteItem {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .noteRow {
@@ -342,9 +341,26 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
-  padding: 10px 12px;
-  background: var(--color-accent-soft);
-  border-radius: var(--radius-sm);
+  padding: 14px 14px 16px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-divider);
+  border-radius: 2px 12px 2px 12px;
+  box-shadow: 1px 3px 8px rgba(139, 115, 85, 0.10);
+  position: relative;
+}
+
+/* 便签的膜胶带效果 */
+.noteRow::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 32px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 1px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
 }
 
 .noteText {
@@ -382,6 +398,7 @@
 
 .noteInput {
   flex: 1;
+  min-width: 0;
   padding: 8px 12px;
   border: 1px solid var(--color-accent-light);
   border-radius: var(--radius-sm);

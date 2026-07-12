@@ -1,0 +1,141 @@
+/* ===== 照片详情页 ===== */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.backBtn {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+/* 照片展示区 */
+.photoContainer {
+  background: var(--color-surface-gradient);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.photoImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  max-height: 60vh;
+  background: #f5f0e8;
+}
+
+/* 说明文字 */
+.captionSection {
+  padding: 14px 16px;
+  border-top: 1px solid var(--color-divider-light);
+}
+
+.captionLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+  margin-bottom: 6px;
+}
+
+.captionText {
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+.captionInput {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-accent-light);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+
+/* 操作按钮 */
+.actions {
+  display: flex;
+  gap: 12px;
+  padding: 0 4px;
+}
+
+.editCaptionBtn {
+  padding: 8px 16px;
+  font-size: var(--font-size-sm);
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+}
+
+.saveCaptionBtn {
+  padding: 6px 14px;
+  font-size: var(--font-size-sm);
+  color: #fff;
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+}
+
+.cancelCaptionBtn {
+  padding: 6px 12px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-hint);
+}
+
+.deleteBtn {
+  padding: 8px 16px;
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-radius: var(--radius-sm);
+}
+
+/* 导航按钮 */
+.navButtons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.navBtn {
+  padding: 8px 16px;
+  font-size: var(--font-size-sm);
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+}
+
+.navBtn:disabled {
+  opacity: 0.3;
+}
+
+/* 时间 */
+.photoTime {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+  margin-top: 8px;
+  text-align: right;
+}
+
+/* 加载/错误 */
+.loading {
+  text-align: center;
+  color: var(--color-text-hint);
+  font-size: var(--font-size-sm);
+  padding: 48px 0;
+}

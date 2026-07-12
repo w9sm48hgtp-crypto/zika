@@ -11,9 +11,11 @@ interface SettingsState {
   userAvatar: string;
   partnerAvatar: string;
   partnerName: string;
+  userName: string;
   vibrationEnabled: boolean;
   keepScreenOn: boolean;
   chatBackground: string;
+  soundVolume: number; // 提示音音量 0-100
 
   loadSettings: () => Promise<void>;
   setReplyDelay: (v: number) => Promise<void>;
@@ -25,9 +27,11 @@ interface SettingsState {
   setUserAvatar: (v: string) => Promise<void>;
   setPartnerAvatar: (v: string) => Promise<void>;
   setPartnerName: (v: string) => Promise<void>;
+  setUserName: (v: string) => Promise<void>;
   setVibrationEnabled: (v: boolean) => Promise<void>;
   setKeepScreenOn: (v: boolean) => Promise<void>;
   setChatBackground: (v: string) => Promise<void>;
+  setSoundVolume: (v: number) => Promise<void>;
 }
 
 const defaultSettings: Record<string, unknown> = {
@@ -40,9 +44,11 @@ const defaultSettings: Record<string, unknown> = {
   userAvatar: '',
   partnerAvatar: '',
   partnerName: '他',
+  userName: '',
   vibrationEnabled: true,
   keepScreenOn: false,
   chatBackground: '',
+  soundVolume: 50,
 };
 
 async function getSetting(key: string): Promise<unknown> {
@@ -64,13 +70,15 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   userAvatar: '',
   partnerAvatar: '',
   partnerName: '他',
+  userName: '',
   vibrationEnabled: true,
   keepScreenOn: false,
   chatBackground: '',
+  soundVolume: 50,
 
   loadSettings: async () => {
     const keys = ['replyDelay', 'replyCountMin', 'replyCountMax', 'textRatio', 'nudgeRatio', 'stickerRatio',
-      'userAvatar', 'partnerAvatar', 'partnerName', 'vibrationEnabled', 'keepScreenOn', 'chatBackground'];
+      'userAvatar', 'partnerAvatar', 'partnerName', 'userName', 'vibrationEnabled', 'keepScreenOn', 'chatBackground', 'soundVolume'];
     const vals = await Promise.all(keys.map(getSetting));
     set({
       replyDelay: vals[0] as number,
@@ -82,9 +90,11 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       userAvatar: vals[6] as string,
       partnerAvatar: vals[7] as string,
       partnerName: vals[8] as string,
-      vibrationEnabled: vals[9] as boolean,
-      keepScreenOn: vals[10] as boolean,
-      chatBackground: vals[11] as string,
+      userName: vals[9] as string,
+      vibrationEnabled: vals[10] as boolean,
+      keepScreenOn: vals[11] as boolean,
+      chatBackground: vals[12] as string,
+      soundVolume: vals[13] as number,
     });
   },
 
@@ -97,7 +107,9 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setUserAvatar: async (v) => { await saveSetting('userAvatar', v); set({ userAvatar: v }); },
   setPartnerAvatar: async (v) => { await saveSetting('partnerAvatar', v); set({ partnerAvatar: v }); },
   setPartnerName: async (v) => { await saveSetting('partnerName', v); set({ partnerName: v }); },
+  setUserName: async (v) => { await saveSetting('userName', v); set({ userName: v }); },
   setVibrationEnabled: async (v) => { await saveSetting('vibrationEnabled', v); set({ vibrationEnabled: v }); },
   setKeepScreenOn: async (v) => { await saveSetting('keepScreenOn', v); set({ keepScreenOn: v }); },
   setChatBackground: async (v) => { await saveSetting('chatBackground', v); set({ chatBackground: v }); },
+  setSoundVolume: async (v) => { await saveSetting('soundVolume', v); set({ soundVolume: v }); },
 }));

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLetterStore } from '../stores/letterStore';
 import { db } from '../db';
 import styles from './LettersPage.module.css';
@@ -17,7 +18,52 @@ function formatReplyTime(ts: number): string {
   return `约${diffHours}小时后回信`;
 }
 
+/** 渲染格式化后的书信内容，逐行渲染横线确保对齐 + 日期右对齐、名字对齐日期中央 */
+function FormattedLetter({ content }: { content: string }) {
+  const lines = content.split('\n');
+  // 至少要有 称呼行 + 日期行 + 名字行
+  if (lines.length < 3) {
+    return <div className={styles.letterPaper}><div className={styles.letterText}>{content}</div></div>;
+  }
+
+  // 兼容旧格式：如果倒数第二行是空行，去掉它
+  let dateIdx = lines.length - 2;
+  let nameIdx = lines.length - 1;
+  if (lines[dateIdx].trim() === '' && lines.length >= 4) {
+    dateIdx = lines.length - 3;
+    nameIdx = lines.length - 2;
+  }
+
+  const bodyLines = lines.slice(0, dateIdx);
+  const dateLine = lines[dateIdx];
+  const nameLine = lines[nameIdx];
+
+  return (
+    <div className={styles.letterPaper}>
+      <div className={styles.letterText}>
+        {bodyLines.map((line, i) => {
+          // 空行不加横线，有文字的行才加横线
+          if (line.trim() === '') {
+            return <div key={i} className={styles.letterEmpty} />;
+          }
+          // 新段落：称呼后每一行都是一个新段落（用户按回车 = 新段落）
+          const isNewParagraph = i >= 1;
+          const className = isNewParagraph
+            ? `${styles.letterLine} ${styles.letterLineIndent}`
+            : styles.letterLine;
+          return <div key={i} className={className}>{line}</div>;
+        })}
+      </div>
+      <div className={styles.letterSignature}>
+        <div className={styles.letterDateLine}>{dateLine}</div>
+        <div className={styles.letterNameLine}>{nameLine}</div>
+      </div>
+    </div>
+  );
+}
+
 function LettersPage() {
+  const navigate = useNavigate();
   const { letters, loading, loadLetters, sendLetter, checkReplies, deleteLetter } = useLetterStore();
 
   const [isComposing, setIsComposing] = useState(false);
@@ -66,7 +112,10 @@ function LettersPage() {
 
   return (
     <div className="page">
-      <h1 className="page-title">书信</h1>
+      <div className={styles.pageHeader}>
+        <button className={styles.backBtn} onClick={() => navigate('/records')}>←</button>
+        <h1 className={styles.pageTitle}>书信</h1>
+      </div>
 
       {/* 累计信数 */}
       <p className={styles.letterCount}>共 {letters.length} 封信</p>
@@ -150,13 +199,17 @@ function LettersPage() {
                 {isExpanded && (
                   <div className={styles.letterBody}>
                     {/* 我的信 */}
-                    <div className={styles.letterContent}>{letter.userContent}</div>
+                    <div className={styles.letterContent}>
+                      <FormattedLetter content={letter.userContent} />
+                    </div>
 
                     {/* 回信 */}
                     {hasReply ? (
                       <div className={styles.replySection}>
                         <div className={styles.replyLabel}>他的回信</div>
-                        <div className={styles.replyContent}>{letter.replyContent}</div>
+                        <div className={styles.replyContent}>
+                          <FormattedLetter content={letter.replyContent!} />
+                        </div>
                       </div>
                     ) : replyPending ? (
                       <div className={styles.replySection}>

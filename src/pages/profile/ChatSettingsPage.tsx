@@ -6,9 +6,9 @@ function ChatSettingsPage() {
   const navigate = useNavigate();
   const {
     replyDelay, replyCountMin, replyCountMax,
-    partnerName, vibrationEnabled,
+    partnerName, userName, vibrationEnabled, soundVolume,
     setReplyDelay, setReplyCountMin, setReplyCountMax,
-    setPartnerName, setVibrationEnabled,
+    setPartnerName, setUserName, setVibrationEnabled, setSoundVolume,
   } = useSettingsStore();
 
   return (
@@ -27,6 +27,16 @@ function ChatSettingsPage() {
               value={partnerName}
               onChange={(e) => setPartnerName(e.target.value)}
               placeholder="他"
+            />
+          </div>
+
+          <div className={styles.settingRow}>
+            <span>我的昵称</span>
+            <input
+              className={styles.settingInput}
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="我"
             />
           </div>
 
@@ -63,6 +73,21 @@ function ChatSettingsPage() {
               className={`${styles.toggle} ${vibrationEnabled ? styles.toggleOn : ''}`}
               onClick={() => setVibrationEnabled(!vibrationEnabled)}
               aria-label={vibrationEnabled ? '关闭震动提醒' : '开启震动提醒'}
+            />
+          </div>
+
+          <div className={styles.settingRow} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>提示音音量</span>
+              <span style={{ color: 'var(--color-text-hint)', fontSize: 'var(--font-size-sm)' }}>{soundVolume}%</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={soundVolume}
+              onChange={(e) => setSoundVolume(Number(e.target.value))}
+              style={{ width: '100%', accentColor: 'var(--color-accent)' }}
             />
           </div>
         </div>

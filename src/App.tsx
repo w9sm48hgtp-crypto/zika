@@ -5,6 +5,11 @@ import ChatPage from './pages/ChatPage';
 import CompanionPage from './pages/CompanionPage';
 import DailyPage from './pages/DailyPage';
 import LettersPage from './pages/LettersPage';
+import RecordsPage from './pages/RecordsPage';
+import DailyLifePage from './pages/DailyLifePage';
+import TextNotesPage from './pages/TextNotesPage';
+import AlbumPage from './pages/AlbumPage';
+import PhotoDetailPage from './pages/PhotoDetailPage';
 import ProfilePage from './pages/ProfilePage';
 import CardLibraryPage from './pages/CardLibraryPage';
 import CompanionHistoryPage from './pages/CompanionHistoryPage';
@@ -34,7 +39,13 @@ function App() {
             <Route path="/companion/history" element={<CompanionHistoryPage />} />
             <Route path="/companion/todo-sort/:categoryId" element={<TodoSortPage />} />
             <Route path="/daily" element={<DailyPage />} />
-            <Route path="/letters" element={<LettersPage />} />
+            <Route path="/letters" element={<Navigate to="/records/letters" replace />} />
+            <Route path="/records" element={<RecordsPage />} />
+            <Route path="/records/letters" element={<LettersPage />} />
+            <Route path="/records/daily" element={<DailyLifePage />} />
+            <Route path="/records/daily/notes" element={<TextNotesPage />} />
+            <Route path="/records/daily/album" element={<AlbumPage />} />
+            <Route path="/records/daily/album/:photoId" element={<PhotoDetailPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/cards" element={<CardLibraryPage />} />
             <Route path="/data" element={<DataManagePage />} />

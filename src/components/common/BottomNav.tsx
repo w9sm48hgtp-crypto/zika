@@ -12,8 +12,8 @@ export function BottomNav() {
       <NavLink to="/daily" className={({ isActive }) => isActive ? 'active' : ''}>
         每日
       </NavLink>
-      <NavLink to="/letters" className={({ isActive }) => isActive ? 'active' : ''}>
-        书信
+      <NavLink to="/records" className={({ isActive }) => isActive ? 'active' : ''}>
+        记录
       </NavLink>
       <NavLink to="/profile" className={({ isActive }) => isActive ? 'active' : ''}>
         我的

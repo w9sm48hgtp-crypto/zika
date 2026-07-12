@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useSettingsStore } from '../stores/settingsStore';
-import { isWithinTenMinutes } from '../utils/cardExtractor';
 import { ChatBubble } from '../components/chat/ChatBubble';
 import { ChatInput } from '../components/chat/ChatInput';
 import { TypingIndicator } from '../components/chat/TypingIndicator';
@@ -116,11 +115,6 @@ function ChatPage() {
     }
   }, [quotedMessage]);
 
-  const canBeQuotedByPartner = useCallback((msg: ChatMessage) => {
-    if (msg.sender !== 'user') return false;
-    return isWithinTenMinutes(msg.timestamp);
-  }, []);
-
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -160,11 +154,7 @@ function ChatPage() {
               )}
               <ChatBubble
                 message={msg}
-                onQuote={(m) => {
-                  if (m.sender === 'user' || canBeQuotedByPartner(m)) {
-                    handleQuote(m);
-                  }
-                }}
+                onQuote={handleQuote}
                 quotedMessage={quoted ?? null}
               />
             </div>
