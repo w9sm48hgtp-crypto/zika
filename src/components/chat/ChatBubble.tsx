@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import type { ChatMessage } from '../../db';
 import { useSettingsStore } from '../../stores/settingsStore';
 import styles from './ChatBubble.module.css';
@@ -75,21 +75,11 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
     setQuoteMenu(null);
   }, [onQuote, message]);
 
-  // 点击其他地方关闭引用菜单
-  useEffect(() => {
-    if (!quoteMenu) return;
-    const close = () => setQuoteMenu(null);
-    // 延迟添加监听，避免当前事件触发关闭
-    const t = setTimeout(() => {
-      document.addEventListener('click', close, { once: true });
-      document.addEventListener('touchstart', close, { once: true });
-    }, 0);
-    return () => {
-      clearTimeout(t);
-      document.removeEventListener('click', close);
-      document.removeEventListener('touchstart', close);
-    };
-  }, [quoteMenu]);
+  // 点击遮罩层关闭引用菜单（用遮罩层而非 document 事件，避免手机上手指松开后
+  // 产生的 click 事件在 setTimeout(0) 之后触发，导致菜单闪现即消失）
+  const handleBackdropClick = useCallback(() => {
+    setQuoteMenu(null);
+  }, []);
 
   // 拍一拍：居中灰色小字，无头像无气泡
   if (message.msgType === 'nudge') {
@@ -134,13 +124,16 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
           </div>
         </div>
         {quoteMenu && (
-          <div
-            className={`${styles.quoteMenu} ${isUser ? styles.quoteMenuLeft : styles.quoteMenuRight}`}
-            style={{ left: quoteMenu.x - 20, top: quoteMenu.y - 44 }}
-            onClick={handleQuoteTap}
-          >
-            引用
-          </div>
+          <>
+            <div className={styles.quoteMenuBackdrop} onClick={handleBackdropClick} />
+            <div
+              className={`${styles.quoteMenu} ${isUser ? styles.quoteMenuLeft : styles.quoteMenuRight}`}
+              style={{ left: quoteMenu.x - 20, top: quoteMenu.y - 44 }}
+              onClick={handleQuoteTap}
+            >
+              引用
+            </div>
+          </>
         )}
       </div>
     );
@@ -172,13 +165,16 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
           <div className={styles.choiceAnswer}>{message.content}</div>
         </div>
         {quoteMenu && (
-          <div
-            className={`${styles.quoteMenu} ${isUser ? styles.quoteMenuLeft : styles.quoteMenuRight}`}
-            style={{ left: quoteMenu.x - 20, top: quoteMenu.y - 44 }}
-            onClick={handleQuoteTap}
-          >
-            引用
-          </div>
+          <>
+            <div className={styles.quoteMenuBackdrop} onClick={handleBackdropClick} />
+            <div
+              className={`${styles.quoteMenu} ${isUser ? styles.quoteMenuLeft : styles.quoteMenuRight}`}
+              style={{ left: quoteMenu.x - 20, top: quoteMenu.y - 44 }}
+              onClick={handleQuoteTap}
+            >
+              引用
+            </div>
+          </>
         )}
       </div>
     );
@@ -228,13 +224,16 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
       </div>
 
       {quoteMenu && (
-        <div
-          className={`${styles.quoteMenu} ${isUser ? styles.quoteMenuLeft : styles.quoteMenuRight}`}
-          style={{ left: quoteMenu.x - 20, top: quoteMenu.y - 44 }}
-          onClick={handleQuoteTap}
-        >
-          引用
-        </div>
+        <>
+          <div className={styles.quoteMenuBackdrop} onClick={handleBackdropClick} />
+          <div
+            className={`${styles.quoteMenu} ${isUser ? styles.quoteMenuLeft : styles.quoteMenuRight}`}
+            style={{ left: quoteMenu.x - 20, top: quoteMenu.y - 44 }}
+            onClick={handleQuoteTap}
+          >
+            引用
+          </div>
+        </>
       )}
     </div>
   );
