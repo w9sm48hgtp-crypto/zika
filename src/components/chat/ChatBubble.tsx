@@ -19,6 +19,8 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
   // 长按引用菜单
   const [quoteMenu, setQuoteMenu] = useState<{ x: number; y: number } | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const TOUCH_MOVE_THRESHOLD = 10; // 移动超过10px才算滑动，避免手指微颤取消长按
 
   const clearLongPress = useCallback(() => {
     if (longPressTimer.current) {
@@ -31,13 +33,20 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
     if (!onQuote) return;
     clearLongPress();
     const touch = e.touches[0];
+    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
     longPressTimer.current = setTimeout(() => {
       setQuoteMenu({ x: touch.clientX, y: touch.clientY });
     }, 500);
   }, [onQuote, clearLongPress]);
 
-  const handleTouchMove = useCallback(() => {
-    clearLongPress();
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    // 只有手指真正滑动（超过阈值）才取消长按，避免手指微颤误取消
+    const touch = e.touches[0];
+    const dx = Math.abs(touch.clientX - touchStartPos.current.x);
+    const dy = Math.abs(touch.clientY - touchStartPos.current.y);
+    if (dx > TOUCH_MOVE_THRESHOLD || dy > TOUCH_MOVE_THRESHOLD) {
+      clearLongPress();
+    }
   }, [clearLongPress]);
 
   const handleTouchEnd = useCallback(() => {
