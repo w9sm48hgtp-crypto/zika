@@ -80,7 +80,7 @@ export function ChatInput({ onSend, onQuoteCancel, quotedContent }: Props) {
     <div className={styles.container}>
       {quotedContent && (
         <div className={styles.quotePreview}>
-          <span className={styles.quoteText}>引用: {quotedContent.slice(0, 30)}...</span>
+          <span className={styles.quoteText}>引用: {quotedContent.startsWith('data:') ? '【图片】' : quotedContent.slice(0, 30) + '...'}</span>
           <button onClick={onQuoteCancel} className={styles.quoteCancel}>x</button>
         </div>
       )}

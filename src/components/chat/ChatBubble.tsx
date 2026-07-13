@@ -223,6 +223,10 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
 
   // ── 普通消息 ──
   const renderContent = () => {
+    // 防御：内容本身是 data URL 则当图片渲染，防止类型标记错误导致 base64 乱码
+    const isDataUrl = message.content.startsWith('data:');
+    if (isDataUrl) return <img src={message.content} alt="" className={styles.sticker} />;
+
     switch (message.msgType) {
       case 'image':
         return <img src={message.content} alt="" className={styles.sticker} />;
@@ -267,7 +271,9 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
         <div className={`${styles.bubble} ${isUser ? styles.bubbleSelf : styles.bubblePartner}`}>
           {message.quotedMessageId && quotedMessage && (
             <div className={styles.quoteBar}>
-              {quotedMessage.content.slice(0, 50)}...
+              {quotedMessage.msgType === 'image' || quotedMessage.content.startsWith('data:')
+                ? '【图片】'
+                : quotedMessage.content.slice(0, 50) + '...'}
             </div>
           )}
           {renderContent()}

@@ -130,10 +130,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
   addPartnerMessage: async (card, quoteId?, quoteContent?) => {
     // 如果有引用，msgType 改为 quote
     const hasQuote = quoteId != null && quoteContent != null;
+    // 防御性判断：如果内容本身是 data URL（如图片 base64），强制当图片处理
+    // 防止字卡 type 标记错误导致 base64 被当纯文本发出去
+    const isDataUrl = card.content.startsWith('data:');
     const msg: ChatMessage = {
       sender: 'partner',
       content: card.content,
-      msgType: hasQuote ? 'quote'
+      // 优先级：内容本身是 data URL 先判断（表情包+引用也不能当文字发）
+      // → 有引用标记 → 表情包 → 拍一拍 → 默认文字
+      msgType: isDataUrl ? 'image'
+        : hasQuote ? 'quote'
         : card.type === 'sticker' ? 'image'
         : card.type === 'nudge' ? 'nudge'
         : 'text',
