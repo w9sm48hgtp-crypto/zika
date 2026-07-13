@@ -75,9 +75,10 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
     setQuoteMenu(null);
   }, [onQuote, message]);
 
-  // 点击遮罩层关闭引用菜单（用遮罩层而非 document 事件，避免手机上手指松开后
-  // 产生的 click 事件在 setTimeout(0) 之后触发，导致菜单闪现即消失）
-  const handleBackdropClick = useCallback(() => {
+  // 遮罩层用 onTouchStart/onMouseDown 而非 onClick 关闭菜单。
+  // 因为长按松手时浏览器会触发 click 事件，如果用 onClick 菜单会闪现即消失。
+  // touchstart/mousedown 在长按松手时不会触发，只有真正的新触摸/点击才会触发。
+  const handleBackdropDismiss = useCallback(() => {
     setQuoteMenu(null);
   }, []);
 
@@ -125,7 +126,7 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
         </div>
         {quoteMenu && (
           <>
-            <div className={styles.quoteMenuBackdrop} onClick={handleBackdropClick} />
+            <div className={styles.quoteMenuBackdrop} onTouchStart={handleBackdropDismiss} onMouseDown={handleBackdropDismiss} />
             <div
               className={`${styles.quoteMenu} ${isUser ? styles.quoteMenuLeft : styles.quoteMenuRight}`}
               style={{ left: quoteMenu.x - 20, top: quoteMenu.y - 44 }}
@@ -166,7 +167,7 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
         </div>
         {quoteMenu && (
           <>
-            <div className={styles.quoteMenuBackdrop} onClick={handleBackdropClick} />
+            <div className={styles.quoteMenuBackdrop} onTouchStart={handleBackdropDismiss} onMouseDown={handleBackdropDismiss} />
             <div
               className={`${styles.quoteMenu} ${isUser ? styles.quoteMenuLeft : styles.quoteMenuRight}`}
               style={{ left: quoteMenu.x - 20, top: quoteMenu.y - 44 }}
@@ -225,7 +226,7 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
 
       {quoteMenu && (
         <>
-          <div className={styles.quoteMenuBackdrop} onClick={handleBackdropClick} />
+          <div className={styles.quoteMenuBackdrop} onTouchStart={handleBackdropDismiss} onMouseDown={handleBackdropDismiss} />
           <div
             className={`${styles.quoteMenu} ${isUser ? styles.quoteMenuLeft : styles.quoteMenuRight}`}
             style={{ left: quoteMenu.x - 20, top: quoteMenu.y - 44 }}
