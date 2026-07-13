@@ -3,6 +3,11 @@ import type { ChatMessage } from '../../db';
 import { useSettingsStore } from '../../stores/settingsStore';
 import styles from './ChatBubble.module.css';
 
+/** 左滑超过此距离触发引用 */
+const SWIPE_THRESHOLD = 60;
+/** 左滑最大视觉偏移量 */
+const MAX_SWIPE = 100;
+
 interface Props {
   message: ChatMessage;
   onQuote?: (msg: ChatMessage) => void;
@@ -16,73 +21,110 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
   const avatar = isUser ? userAvatar : partnerAvatar;
   const name = isUser ? '我' : partnerName;
 
-  // 长按引用菜单
-  const [quoteMenu, setQuoteMenu] = useState<{ x: number; y: number } | null>(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const touchStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const TOUCH_MOVE_THRESHOLD = 10; // 移动超过10px才算滑动，避免手指微颤取消长按
+  // ── 左滑引用（触屏 + 鼠标） ──
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const swipeOffsetRef = useRef(0);
+  const swipeStartX = useRef(0);
+  const swipeStartY = useRef(0);
+  const isSwiping = useRef(false);
 
-  const clearLongPress = useCallback(() => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  }, []);
-
+  /** 开始拖拽（触屏） */
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (!onQuote) return;
-    clearLongPress();
     const touch = e.touches[0];
-    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
-    longPressTimer.current = setTimeout(() => {
-      setQuoteMenu({ x: touch.clientX, y: touch.clientY });
-    }, 500);
-  }, [onQuote, clearLongPress]);
+    swipeStartX.current = touch.clientX;
+    swipeStartY.current = touch.clientY;
+    isSwiping.current = false;
+    setSwipeOffset(0);
+    swipeOffsetRef.current = 0;
+  }, [onQuote]);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    // 只有手指真正滑动（超过阈值）才取消长按，避免手指微颤误取消
-    const touch = e.touches[0];
-    const dx = Math.abs(touch.clientX - touchStartPos.current.x);
-    const dy = Math.abs(touch.clientY - touchStartPos.current.y);
-    if (dx > TOUCH_MOVE_THRESHOLD || dy > TOUCH_MOVE_THRESHOLD) {
-      clearLongPress();
-    }
-  }, [clearLongPress]);
-
-  const handleTouchEnd = useCallback(() => {
-    clearLongPress();
-  }, [clearLongPress]);
-
-  // 鼠标长按（桌面端同样用长按）
+  /** 开始拖拽（鼠标） */
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!onQuote) return;
-    clearLongPress();
-    longPressTimer.current = setTimeout(() => {
-      setQuoteMenu({ x: e.clientX, y: e.clientY });
-    }, 500);
-  }, [onQuote, clearLongPress]);
+    swipeStartX.current = e.clientX;
+    swipeStartY.current = e.clientY;
+    isSwiping.current = false;
+    setSwipeOffset(0);
+    swipeOffsetRef.current = 0;
+  }, [onQuote]);
 
-  const handleMouseUp = useCallback(() => {
-    clearLongPress();
-  }, [clearLongPress]);
+  const handleSwipeMove = useCallback((clientX: number, clientY: number) => {
+    if (!onQuote) return;
+    const dx = clientX - swipeStartX.current;
+    const dy = Math.abs(clientY - swipeStartY.current);
 
-  const handleMouseMove = useCallback(() => {
-    clearLongPress();
-  }, [clearLongPress]);
+    // 垂直移动为主 → 用户在滚动，不拦截
+    if (dy > Math.abs(dx) && dy > 10) {
+      if (isSwiping.current) {
+        isSwiping.current = false;
+        swipeOffsetRef.current = 0;
+        setSwipeOffset(0);
+      }
+      return;
+    }
 
-  const handleQuoteTap = useCallback(() => {
-    onQuote?.(message);
-    setQuoteMenu(null);
+    // 水平左滑
+    if (dx < -10) {
+      isSwiping.current = true;
+      const offset = Math.max(dx, -MAX_SWIPE);
+      swipeOffsetRef.current = offset;
+      setSwipeOffset(offset);
+    } else if (dx > 10) {
+      // 右滑取消
+      isSwiping.current = false;
+      swipeOffsetRef.current = 0;
+      setSwipeOffset(0);
+    }
+  }, [onQuote]);
+
+  /** 拖拽中（触屏） */
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    handleSwipeMove(touch.clientX, touch.clientY);
+    if (isSwiping.current) {
+      e.preventDefault();
+    }
+  }, [handleSwipeMove]);
+
+  /** 拖拽中（鼠标，仅左键按下时生效） */
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (e.buttons !== 1) return; // 左键没按下则忽略
+    handleSwipeMove(e.clientX, e.clientY);
+  }, [handleSwipeMove]);
+
+  const handleSwipeEnd = useCallback(() => {
+    if (!onQuote) return;
+    if (swipeOffsetRef.current <= -SWIPE_THRESHOLD && isSwiping.current) {
+      onQuote(message);
+    }
+    isSwiping.current = false;
+    swipeOffsetRef.current = 0;
+    setSwipeOffset(0);
   }, [onQuote, message]);
 
-  // 遮罩层用 onTouchStart/onMouseDown 而非 onClick 关闭菜单。
-  // 因为长按松手时浏览器会触发 click 事件，如果用 onClick 菜单会闪现即消失。
-  // touchstart/mousedown 在长按松手时不会触发，只有真正的新触摸/点击才会触发。
-  const handleBackdropDismiss = useCallback(() => {
-    setQuoteMenu(null);
-  }, []);
+  /** 松手（触屏） */
+  const handleTouchEnd = useCallback(() => {
+    handleSwipeEnd();
+  }, [handleSwipeEnd]);
 
-  // 拍一拍：居中灰色小字，无头像无气泡
+  /** 松手（鼠标） */
+  const handleMouseUp = useCallback(() => {
+    handleSwipeEnd();
+  }, [handleSwipeEnd]);
+
+  // ── 左滑时的“引用”标签 ──
+  const showQuoteLabel = onQuote && swipeOffset < -10;
+  const quoteLabel = showQuoteLabel ? (
+    <div
+      className={styles.swipeQuoteLabel}
+      style={{ opacity: Math.min(Math.abs(swipeOffset) / SWIPE_THRESHOLD, 1) }}
+    >
+      引用
+    </div>
+  ) : null;
+
+  // ── 拍一拍：居中灰色小字，不可引用 ──
   if (message.msgType === 'nudge') {
     return (
       <div className={styles.nudgeRow}>
@@ -91,7 +133,7 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
     );
   }
 
-  // 选择题问题
+  // ── 选择题问题 ──
   if (message.msgType === 'choice_q') {
     const lines = message.content.split('\n').filter(l => l.trim());
     const question = lines[0];
@@ -99,95 +141,92 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
     return (
       <div
         className={`${styles.bubbleRow} ${isUser ? styles.rowRight : styles.rowLeft}`}
+        style={onQuote ? { overflow: 'hidden' } : undefined}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
         onContextMenu={(e) => e.preventDefault()}
       >
-        <div className={styles.avatar}>
-          {avatar ? (
-            <img src={avatar} alt="" className={styles.avatarImg} />
-          ) : (
-            <div className={isUser ? styles.avatarPlaceholder : styles.avatarPlaceholderPartner}>
-              {isUser ? '我' : name[0]}
+        {quoteLabel}
+        <div
+          className={styles.swipeRow}
+          style={{
+            transform: `translateX(${swipeOffset}px)`,
+            transition: swipeOffset === 0 ? 'transform 0.2s ease' : undefined,
+            ...(isUser ? { flexDirection: 'row-reverse' as const } : {}),
+          }}
+        >
+          <div className={styles.avatar}>
+            {avatar ? (
+              <img src={avatar} alt="" className={styles.avatarImg} />
+            ) : (
+              <div className={isUser ? styles.avatarPlaceholder : styles.avatarPlaceholderPartner}>
+                {isUser ? '我' : name[0]}
+              </div>
+            )}
+          </div>
+          <div className={`${styles.choiceBox} ${isUser ? styles.choiceSelf : styles.choicePartner}`}>
+            <div className={styles.choiceQuestion}>{question}</div>
+            <div className={styles.choiceOptions}>
+              {options.map((opt, i) => (
+                <div key={i} className={styles.choiceOption}>{opt}</div>
+              ))}
             </div>
-          )}
-        </div>
-        <div className={`${styles.choiceBox} ${isUser ? styles.choiceSelf : styles.choicePartner}`}>
-          <div className={styles.choiceQuestion}>{question}</div>
-          <div className={styles.choiceOptions}>
-            {options.map((opt, i) => (
-              <div key={i} className={styles.choiceOption}>{opt}</div>
-            ))}
           </div>
         </div>
-        {quoteMenu && (
-          <>
-            <div className={styles.quoteMenuBackdrop} onTouchStart={handleBackdropDismiss} onMouseDown={handleBackdropDismiss} />
-            <div
-              className={`${styles.quoteMenu} ${isUser ? styles.quoteMenuLeft : styles.quoteMenuRight}`}
-              style={{ left: quoteMenu.x - 20, top: quoteMenu.y - 44 }}
-              onClick={handleQuoteTap}
-            >
-              引用
-            </div>
-          </>
-        )}
       </div>
     );
   }
 
-  // 选择题答案
+  // ── 选择题答案 ──
   if (message.msgType === 'choice_a') {
     return (
       <div
         className={`${styles.bubbleRow} ${isUser ? styles.rowRight : styles.rowLeft}`}
+        style={onQuote ? { overflow: 'hidden' } : undefined}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
         onContextMenu={(e) => e.preventDefault()}
       >
-        <div className={styles.avatar}>
-          {avatar ? (
-            <img src={avatar} alt="" className={styles.avatarImg} />
-          ) : (
-            <div className={isUser ? styles.avatarPlaceholder : styles.avatarPlaceholderPartner}>
-              {isUser ? '我' : name[0]}
-            </div>
-          )}
+        {quoteLabel}
+        <div
+          className={styles.swipeRow}
+          style={{
+            transform: `translateX(${swipeOffset}px)`,
+            transition: swipeOffset === 0 ? 'transform 0.2s ease' : undefined,
+            ...(isUser ? { flexDirection: 'row-reverse' as const } : {}),
+          }}
+        >
+          <div className={styles.avatar}>
+            {avatar ? (
+              <img src={avatar} alt="" className={styles.avatarImg} />
+            ) : (
+              <div className={isUser ? styles.avatarPlaceholder : styles.avatarPlaceholderPartner}>
+                {isUser ? '我' : name[0]}
+              </div>
+            )}
+          </div>
+          <div className={`${styles.choiceBox} ${isUser ? styles.choiceSelf : styles.choicePartner}`}>
+            <div className={styles.choiceAnswer}>{message.content}</div>
+          </div>
         </div>
-        <div className={`${styles.choiceBox} ${isUser ? styles.choiceSelf : styles.choicePartner}`}>
-          <div className={styles.choiceAnswer}>{message.content}</div>
-        </div>
-        {quoteMenu && (
-          <>
-            <div className={styles.quoteMenuBackdrop} onTouchStart={handleBackdropDismiss} onMouseDown={handleBackdropDismiss} />
-            <div
-              className={`${styles.quoteMenu} ${isUser ? styles.quoteMenuLeft : styles.quoteMenuRight}`}
-              style={{ left: quoteMenu.x - 20, top: quoteMenu.y - 44 }}
-              onClick={handleQuoteTap}
-            >
-              引用
-            </div>
-          </>
-        )}
       </div>
     );
   }
 
-  // 普通消息
+  // ── 普通消息 ──
   const renderContent = () => {
     switch (message.msgType) {
       case 'image':
         return <img src={message.content} alt="" className={styles.sticker} />;
       case 'quote':
-        // 引用内容已在上方 quoteBar 显示，气泡内只显示消息正文
         return <span>{message.content}</span>;
       default:
         return <span>{message.content}</span>;
@@ -197,45 +236,43 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
   return (
     <div
       className={`${styles.bubbleRow} ${isUser ? styles.rowRight : styles.rowLeft}`}
+      style={onQuote ? { overflow: 'hidden' } : undefined}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
       onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
       onContextMenu={(e) => e.preventDefault()}
     >
-      <div className={styles.avatar}>
-        {avatar ? (
-          <img src={avatar} alt="" className={styles.avatarImg} />
-        ) : (
-          <div className={isUser ? styles.avatarPlaceholder : styles.avatarPlaceholderPartner}>
-            {isUser ? '我' : name[0]}
-          </div>
-        )}
-      </div>
+      {quoteLabel}
+      <div
+        className={styles.swipeRow}
+        style={{
+          transform: `translateX(${swipeOffset}px)`,
+          transition: swipeOffset === 0 ? 'transform 0.2s ease' : undefined,
+          ...(isUser ? { flexDirection: 'row-reverse' as const } : {}),
+        }}
+      >
+        <div className={styles.avatar}>
+          {avatar ? (
+            <img src={avatar} alt="" className={styles.avatarImg} />
+          ) : (
+            <div className={isUser ? styles.avatarPlaceholder : styles.avatarPlaceholderPartner}>
+              {isUser ? '我' : name[0]}
+            </div>
+          )}
+        </div>
 
-      <div className={`${styles.bubble} ${isUser ? styles.bubbleSelf : styles.bubblePartner}`}>
-        {message.quotedMessageId && quotedMessage && (
-          <div className={styles.quoteBar}>
-            {quotedMessage.content.slice(0, 50)}...
-          </div>
-        )}
-        {renderContent()}
+        <div className={`${styles.bubble} ${isUser ? styles.bubbleSelf : styles.bubblePartner}`}>
+          {message.quotedMessageId && quotedMessage && (
+            <div className={styles.quoteBar}>
+              {quotedMessage.content.slice(0, 50)}...
+            </div>
+          )}
+          {renderContent()}
+        </div>
       </div>
-
-      {quoteMenu && (
-        <>
-          <div className={styles.quoteMenuBackdrop} onTouchStart={handleBackdropDismiss} onMouseDown={handleBackdropDismiss} />
-          <div
-            className={`${styles.quoteMenu} ${isUser ? styles.quoteMenuLeft : styles.quoteMenuRight}`}
-            style={{ left: quoteMenu.x - 20, top: quoteMenu.y - 44 }}
-            onClick={handleQuoteTap}
-          >
-            引用
-          </div>
-        </>
-      )}
     </div>
   );
 }
