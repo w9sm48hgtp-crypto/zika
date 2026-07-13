@@ -179,3 +179,63 @@ a {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* ===== 通用 "…" 操作按钮 ===== */
+.moreBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e8e8e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.moreBtn:active {
+  background: #d0d0d0;
+}
+.moreBtnDot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #888;
+}
+
+/* ===== 通用弹出菜单 ===== */
+.popupMenu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: #fff;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  z-index: 50;
+  min-width: 80px;
+  overflow: hidden;
+  animation: fadeIn 0.15s ease;
+}
+.popupMenuItem {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  text-align: center;
+  white-space: nowrap;
+  transition: background 0.1s;
+}
+.popupMenuItem:active {
+  background: #f5f5f5;
+}
+.popupMenuItemDanger {
+  color: var(--color-danger);
+}
+.popupOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+}
+

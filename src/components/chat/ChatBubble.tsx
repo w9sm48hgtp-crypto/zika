@@ -105,6 +105,7 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
+        onContextMenu={(e) => e.preventDefault()}
       >
         <div className={styles.avatar}>
           {avatar ? (
@@ -147,6 +148,7 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
+        onContextMenu={(e) => e.preventDefault()}
       >
         <div className={styles.avatar}>
           {avatar ? (
@@ -195,6 +197,7 @@ export function ChatBubble({ message, onQuote, quotedMessage }: Props) {
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       onMouseMove={handleMouseMove}
+      onContextMenu={(e) => e.preventDefault()}
     >
       <div className={styles.avatar}>
         {avatar ? (

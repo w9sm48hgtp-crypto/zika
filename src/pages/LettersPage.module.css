@@ -137,7 +137,7 @@
   background: var(--color-surface-gradient);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  overflow: visible;
   transition: all 0.2s;
   border: 1px solid var(--color-divider);
 }
@@ -260,6 +260,22 @@
 /* 新段落首行 — 空两格 */
 .letterLineIndent {
   text-indent: 2em;
+}
+
+/* 回信行 — 不缩进，有横线 */
+.letterLineNoIndent {
+  line-height: 2;
+  word-break: break-word;
+  background-image: linear-gradient(
+    to right,
+    transparent 12px,
+    rgba(195, 185, 168, 0.22) 12px,
+    rgba(195, 185, 168, 0.22) calc(100% - 12px),
+    transparent calc(100% - 12px)
+  );
+  background-position: bottom;
+  background-size: 100% 1px;
+  background-repeat: no-repeat;
 }
 
 /* 空行 — 只占高度，不加横线 */

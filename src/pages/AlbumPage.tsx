@@ -13,6 +13,7 @@ function AlbumPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTarget, setUploadTarget] = useState<number | null>(null);
+  const [menuAlbumId, setMenuAlbumId] = useState<number | null>(null);
 
   useEffect(() => {
     loadData();
@@ -139,7 +140,8 @@ function AlbumPage() {
           {albums.map(album => {
             const photos = photosMap[album.id!] || [];
             const isExpanded = expandedId === album.id;
-            const displayPhotos = photos.slice(0, 9);
+            const previewPhotos = photos.slice(0, 3);
+            const extraCount = photos.length - 3;
 
             return (
               <div key={album.id} className={styles.albumCard}>
@@ -148,26 +150,63 @@ function AlbumPage() {
                     <span className={styles.albumName}>{album.name}</span>
                     <span className={styles.albumCount}>({photos.length})</span>
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                     <button
-                      className={styles.albumAddPhoto}
-                      onClick={e => { e.stopPropagation(); openUpload(album.id!); }}
+                      className="moreBtn"
+                      onClick={e => { e.stopPropagation(); setMenuAlbumId(menuAlbumId === album.id ? null : album.id!); }}
                     >
-                      ＋ 添加
+                      <span className="moreBtnDot" />
+                      <span className="moreBtnDot" />
+                      <span className="moreBtnDot" />
                     </button>
-                    <button
-                      className={styles.albumDelete}
-                      onClick={e => { e.stopPropagation(); handleDeleteAlbum(album.id!); }}
-                    >
-                      删除
-                    </button>
+                    {menuAlbumId === album.id && (
+                      <>
+                        <div className="popupOverlay" onClick={e => { e.stopPropagation(); setMenuAlbumId(null); }} />
+                        <div className="popupMenu">
+                          <button className="popupMenuItem" onClick={e => { e.stopPropagation(); setMenuAlbumId(null); openUpload(album.id!); }}>
+                            添加照片
+                          </button>
+                          <button className="popupMenuItem popupMenuItemDanger" onClick={e => { e.stopPropagation(); setMenuAlbumId(null); handleDeleteAlbum(album.id!); }}>
+                            删除相册
+                          </button>
+                        </div>
+                      </>
+                    )}
                     <span className={`${styles.albumArrow} ${isExpanded ? styles.albumArrowOpen : ''}`}>▼</span>
                   </div>
                 </div>
 
-                {isExpanded && (
+                {/* 折叠时：显示前3张预览 */}
+                {!isExpanded && photos.length > 0 && (
+                  <div className={styles.photoPreviewRow}>
+                    {previewPhotos.map(photo => (
+                      <img
+                        key={photo.id}
+                        className={styles.photoThumbSmall}
+                        src={photo.dataUrl}
+                        alt={photo.caption || '照片'}
+                        onClick={(e) => { e.stopPropagation(); navigate(`/records/daily/album/${photo.id}`); }}
+                      />
+                    ))}
+                    {extraCount > 0 && (
+                      <div className={styles.photoMoreIndicator}>
+                        <span className={styles.dot} />
+                        <span className={styles.dot} />
+                        <span className={styles.dot} />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 折叠时：无照片 */}
+                {!isExpanded && photos.length === 0 && (
+                  <p className={styles.noPhotoHint}>暂时还没有添加照片</p>
+                )}
+
+                {/* 展开时：完整网格 */}
+                {isExpanded && photos.length > 0 && (
                   <div className={styles.photoGrid}>
-                    {displayPhotos.map(photo => (
+                    {photos.map(photo => (
                       <img
                         key={photo.id}
                         className={styles.photoThumb}
@@ -176,6 +215,19 @@ function AlbumPage() {
                         onClick={() => navigate(`/records/daily/album/${photo.id}`)}
                       />
                     ))}
+                    <div
+                      className={styles.photoThumbPlaceholder}
+                      onClick={() => openUpload(album.id!)}
+                    >
+                      ＋
+                    </div>
+                  </div>
+                )}
+
+                {/* 展开时：无照片 */}
+                {isExpanded && photos.length === 0 && (
+                  <div className={styles.photoGrid}>
+                    <p className={styles.noPhotoHint}>暂时还没有添加照片</p>
                     <div
                       className={styles.photoThumbPlaceholder}
                       onClick={() => openUpload(album.id!)}

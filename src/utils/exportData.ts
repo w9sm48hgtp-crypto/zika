@@ -18,6 +18,8 @@ export const EXPORT_MODULES: ExportModule[] = [
   { key: 'letters', label: '书信', description: '所有写信和回信内容' },
   { key: 'companionRecords', label: '陪伴记录', description: '学习/吃饭/睡觉/自定义陪伴计时记录' },
   { key: 'todo', label: 'Todo 计划', description: '累计完成数、每日计划、自定义分类和项目' },
+  { key: 'stickyNotes', label: '文字便签', description: '日常随手记录的文字便签' },
+  { key: 'photoAlbums', label: '相册数据', description: '相册分类、照片及说明' },
 ];
 
 export interface ExportData {
@@ -95,6 +97,17 @@ export async function exportModules(moduleKeys: string[]): Promise<ExportData> {
         };
         break;
       }
+      case 'stickyNotes': {
+        const notes = await db.stickyNotes.toArray();
+        modules.stickyNotes = notes;
+        break;
+      }
+      case 'photoAlbums': {
+        const albums = await db.photoAlbums.toArray();
+        const photos = await db.photos.toArray();
+        modules.photoAlbums = { albums, photos };
+        break;
+      }
     }
   }
 
@@ -151,6 +164,13 @@ export async function estimateModuleSizes(): Promise<Record<string, number>> {
     categories: todoCategories,
     items: todoItemsAll,
   })]).size;
+
+  const stickyNotes = await db.stickyNotes.toArray();
+  sizes.stickyNotes = new Blob([JSON.stringify(stickyNotes)]).size;
+
+  const albumList = await db.photoAlbums.toArray();
+  const photoList = await db.photos.toArray();
+  sizes.photoAlbums = new Blob([JSON.stringify({ albums: albumList, photos: photoList })]).size;
 
   return sizes;
 }

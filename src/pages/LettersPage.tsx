@@ -19,7 +19,7 @@ function formatReplyTime(ts: number): string {
 }
 
 /** 渲染格式化后的书信内容，逐行渲染横线确保对齐 + 日期右对齐、名字对齐日期中央 */
-function FormattedLetter({ content }: { content: string }) {
+function FormattedLetter({ content, isReply }: { content: string; isReply?: boolean }) {
   const lines = content.split('\n');
   // 至少要有 称呼行 + 日期行 + 名字行
   if (lines.length < 3) {
@@ -46,11 +46,10 @@ function FormattedLetter({ content }: { content: string }) {
           if (line.trim() === '') {
             return <div key={i} className={styles.letterEmpty} />;
           }
-          // 新段落：称呼后每一行都是一个新段落（用户按回车 = 新段落）
-          const isNewParagraph = i >= 1;
-          const className = isNewParagraph
-            ? `${styles.letterLine} ${styles.letterLineIndent}`
-            : styles.letterLine;
+          // 用户的信：每行都空两格；回信：不缩进
+          const className = isReply
+            ? styles.letterLineNoIndent
+            : `${styles.letterLine} ${styles.letterLineIndent}`;
           return <div key={i} className={className}>{line}</div>;
         })}
       </div>
@@ -71,6 +70,7 @@ function LettersPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [sending, setSending] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [menuLetterId, setMenuLetterId] = useState<number | null>(null);
 
   const isLoaded = useRef(false);
 
@@ -208,7 +208,7 @@ function LettersPage() {
                       <div className={styles.replySection}>
                         <div className={styles.replyLabel}>他的回信</div>
                         <div className={styles.replyContent}>
-                          <FormattedLetter content={letter.replyContent!} />
+                          <FormattedLetter content={letter.replyContent!} isReply />
                         </div>
                       </div>
                     ) : replyPending ? (
@@ -223,9 +223,26 @@ function LettersPage() {
 
                     {/* 删除 */}
                     <div className={styles.letterActions}>
-                      <button className={styles.deleteBtn} onClick={() => handleDelete(letter.id!)}>
-                        删除
-                      </button>
+                      <div style={{ position: 'relative' }}>
+                        <button
+                          className="moreBtn"
+                          onClick={(e) => { e.stopPropagation(); setMenuLetterId(menuLetterId === letter.id ? null : letter.id!); }}
+                        >
+                          <span className="moreBtnDot" />
+                          <span className="moreBtnDot" />
+                          <span className="moreBtnDot" />
+                        </button>
+                        {menuLetterId === letter.id && (
+                          <>
+                            <div className="popupOverlay" onClick={() => setMenuLetterId(null)} />
+                            <div className="popupMenu">
+                              <button className="popupMenuItem popupMenuItemDanger" onClick={() => { setMenuLetterId(null); handleDelete(letter.id!); }}>
+                                删除
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}

@@ -16,6 +16,7 @@ function TextNotesPage() {
   const [newContent, setNewContent] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editContent, setEditContent] = useState('');
+  const [menuNoteId, setMenuNoteId] = useState<number | null>(null);
 
   useEffect(() => {
     loadNotes();
@@ -126,8 +127,29 @@ function TextNotesPage() {
                   <p className={styles.noteContent}>{note.content}</p>
                   <p className={styles.noteTime}>{formatTime(note.createdAt)}</p>
                   <div className={styles.noteActions}>
-                    <button className={styles.editBtn} onClick={() => handleEdit(note)}>编辑</button>
-                    <button className={styles.delBtn} onClick={() => handleDelete(note.id!)}>删除</button>
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        className="moreBtn"
+                        onClick={(e) => { e.stopPropagation(); setMenuNoteId(menuNoteId === note.id ? null : note.id!); }}
+                      >
+                        <span className="moreBtnDot" />
+                        <span className="moreBtnDot" />
+                        <span className="moreBtnDot" />
+                      </button>
+                      {menuNoteId === note.id && (
+                        <>
+                          <div className="popupOverlay" onClick={() => setMenuNoteId(null)} />
+                          <div className="popupMenu">
+                            <button className="popupMenuItem" onClick={() => { setMenuNoteId(null); handleEdit(note); }}>
+                              编辑
+                            </button>
+                            <button className="popupMenuItem popupMenuItemDanger" onClick={() => { setMenuNoteId(null); handleDelete(note.id!); }}>
+                              删除
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </>
               )}

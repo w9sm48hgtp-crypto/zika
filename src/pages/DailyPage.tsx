@@ -50,6 +50,7 @@ function DailyPage() {
   const [editingNoteIdx, setEditingNoteIdx] = useState<number | null>(null);
   const [editingNoteText, setEditingNoteText] = useState('');
   const [comfortMsg, setComfortMsg] = useState<string | null>(null);
+  const [menuNoteIdx, setMenuNoteIdx] = useState<number | null>(null);
   const isLoaded = useRef(false);
 
   useEffect(() => {
@@ -258,8 +259,29 @@ function DailyPage() {
                   <div className={styles.noteRow}>
                     <span className={styles.noteText}>{note}</span>
                     <div className={styles.noteActions}>
-                      <button className={styles.noteEditBtn} onClick={() => handleEditNote(i, note)}>编辑</button>
-                      <button className={styles.noteDelBtn} onClick={() => deleteUserNote(i)}>删除</button>
+                      <div style={{ position: 'relative' }}>
+                        <button
+                          className="moreBtn"
+                          onClick={(e) => { e.stopPropagation(); setMenuNoteIdx(menuNoteIdx === i ? null : i); }}
+                        >
+                          <span className="moreBtnDot" />
+                          <span className="moreBtnDot" />
+                          <span className="moreBtnDot" />
+                        </button>
+                        {menuNoteIdx === i && (
+                          <>
+                            <div className="popupOverlay" onClick={() => setMenuNoteIdx(null)} />
+                            <div className="popupMenu">
+                              <button className="popupMenuItem" onClick={() => { setMenuNoteIdx(null); handleEditNote(i, note); }}>
+                                编辑
+                              </button>
+                              <button className="popupMenuItem popupMenuItemDanger" onClick={() => { setMenuNoteIdx(null); deleteUserNote(i); }}>
+                                删除
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}

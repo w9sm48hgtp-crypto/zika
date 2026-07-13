@@ -221,6 +221,64 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
         }
         break;
       }
+      case 'stickyNotes': {
+        if (!Array.isArray(value)) continue;
+        const existing = await db.stickyNotes.toArray();
+        const existingContents = new Set(existing.map(n => n.content));
+        const toAdd = value
+          .filter((n: any) => !existingContents.has(n.content))
+          .map(({ id, ...rest }: any) => ({
+            content: rest.content,
+            createdAt: rest.createdAt || Date.now(),
+            updatedAt: rest.updatedAt || Date.now(),
+          }));
+        if (toAdd.length > 0) await db.stickyNotes.bulkAdd(toAdd as any);
+        break;
+      }
+      case 'photoAlbums': {
+        if (!value || typeof value !== 'object') continue;
+        const albumData = value as { albums?: any[]; photos?: any[] };
+
+        // 导入相册分类（同名不重复创建）
+        const albumIdMap: Record<number, number> = {}; // 旧ID → 新ID
+        if (Array.isArray(albumData.albums)) {
+          const existingAlbums = await db.photoAlbums.toArray();
+          const existingNames = new Set(existingAlbums.map(a => a.name));
+          for (const album of albumData.albums) {
+            const oldId: number = album.id ?? 0;
+            if (!existingNames.has(album.name)) {
+              const newId = await db.photoAlbums.add({
+                name: album.name,
+                sortOrder: album.sortOrder ?? Date.now(),
+                createdAt: album.createdAt ?? Date.now(),
+              });
+              if (album.id != null) { albumIdMap[oldId] = newId as number; }
+            } else {
+              const existing = existingAlbums.find(a => a.name === album.name);
+              if (existing && album.id != null) albumIdMap[oldId] = existing.id!;
+            }
+          }
+        }
+
+        // 导入照片（按 dataUrl 去重）
+        if (Array.isArray(albumData.photos)) {
+          const existingPhotos = await db.photos.toArray();
+          const existingUrls = new Set(existingPhotos.map(p => p.dataUrl));
+          const toAdd: any[] = [];
+          for (const photo of albumData.photos) {
+            if (existingUrls.has(photo.dataUrl)) continue;
+            const newAlbumId = albumIdMap[photo.albumId] || photo.albumId;
+            toAdd.push({
+              albumId: newAlbumId,
+              caption: photo.caption || '',
+              dataUrl: photo.dataUrl,
+              createdAt: photo.createdAt || Date.now(),
+            });
+          }
+          if (toAdd.length > 0) await db.photos.bulkAdd(toAdd as any);
+        }
+        break;
+      }
     }
   }
 }
@@ -237,6 +295,8 @@ function getModuleLabel(key: string): string {
     letters: '书信',
     companionRecords: '陪伴记录',
     todo: 'Todo 计划',
+    stickyNotes: '文字便签',
+    photoAlbums: '相册数据',
   };
   return map[key] || key;
 }

@@ -21,6 +21,7 @@ function TodoItemRow({
 }) {
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(item.text);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleSave = () => {
     const trimmed = editText.trim();
@@ -63,20 +64,29 @@ function TodoItemRow({
       ) : (
         <>
           <span className={isDone ? styles.itemTextDone : styles.itemText}>{item.text}</span>
-          <button
-            className={styles.itemEditBtn}
-            onClick={() => { setEditText(item.text); setEditing(true); }}
-            title="编辑"
-          >
-            编辑
-          </button>
-          <button
-            className={styles.itemDeleteBtn}
-            onClick={() => onDelete(item.id!)}
-            title="删除"
-          >
-            ✕
-          </button>
+          <div style={{ position: 'relative' }}>
+            <button
+              className="moreBtn"
+              onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
+            >
+              <span className="moreBtnDot" />
+              <span className="moreBtnDot" />
+              <span className="moreBtnDot" />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="popupOverlay" onClick={() => setMenuOpen(false)} />
+                <div className="popupMenu">
+                  <button className="popupMenuItem" onClick={() => { setMenuOpen(false); setEditText(item.text); setEditing(true); }}>
+                    编辑
+                  </button>
+                  <button className="popupMenuItem popupMenuItemDanger" onClick={() => { setMenuOpen(false); onDelete(item.id!); }}>
+                    删除
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </>
       )}
     </div>
@@ -96,6 +106,7 @@ function TodoList({ partnerName }: TodoListProps) {
   const [addingCat, setAddingCat] = useState(false);
   const [newItemMap, setNewItemMap] = useState<Record<number, string>>({});
   const [dailyText, setDailyText] = useState('');
+  const [menuCatId, setMenuCatId] = useState<number | null>(null);
   const isLoaded = useRef(false);
 
   useEffect(() => {
@@ -191,12 +202,28 @@ function TodoList({ partnerName }: TodoListProps) {
         {dailyItems.length > 0 && (
           <div className={styles.catHeader}>
             <span className={styles.catName}>今日计划</span>
-            <button
-              className={styles.sortBtn}
-              onClick={() => navigate(`/companion/todo-sort/0`)}
-            >
-              排序
-            </button>
+            <div className={styles.catActions}>
+              <div style={{ position: 'relative' }}>
+                <button
+                  className="moreBtn"
+                  onClick={(e) => { e.stopPropagation(); setMenuCatId(menuCatId === 0 ? null : 0); }}
+                >
+                  <span className="moreBtnDot" />
+                  <span className="moreBtnDot" />
+                  <span className="moreBtnDot" />
+                </button>
+                {menuCatId === 0 && (
+                  <>
+                    <div className="popupOverlay" onClick={() => setMenuCatId(null)} />
+                    <div className="popupMenu">
+                      <button className="popupMenuItem" onClick={() => { setMenuCatId(null); navigate(`/companion/todo-sort/0`); }}>
+                        排序
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -256,20 +283,31 @@ function TodoList({ partnerName }: TodoListProps) {
         return (
           <div key={cid} className={styles.categoryCard}>
             <div className={styles.catHeader}>
-              <span className={styles.catName}>📁 {cat.name}</span>
+              <span className={styles.catName}>{cat.name}</span>
               <div className={styles.catActions}>
-                <button
-                  className={styles.sortBtn}
-                  onClick={() => navigate(`/companion/todo-sort/${cid}`)}
-                >
-                  排序
-                </button>
-                <button
-                  className={styles.catDeleteBtn}
-                  onClick={() => handleDeleteCat(cid)}
-                >
-                  删除分类
-                </button>
+                <div style={{ position: 'relative' }}>
+                  <button
+                    className="moreBtn"
+                    onClick={(e) => { e.stopPropagation(); setMenuCatId(menuCatId === cid ? null : cid); }}
+                  >
+                    <span className="moreBtnDot" />
+                    <span className="moreBtnDot" />
+                    <span className="moreBtnDot" />
+                  </button>
+                  {menuCatId === cid && (
+                    <>
+                      <div className="popupOverlay" onClick={() => setMenuCatId(null)} />
+                      <div className="popupMenu">
+                        <button className="popupMenuItem" onClick={() => { setMenuCatId(null); navigate(`/companion/todo-sort/${cid}`); }}>
+                          排序
+                        </button>
+                        <button className="popupMenuItem popupMenuItemDanger" onClick={() => { setMenuCatId(null); handleDeleteCat(cid); }}>
+                          删除分类
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
