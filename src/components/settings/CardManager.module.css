@@ -226,3 +226,55 @@
   background: var(--color-accent-soft) !important;
   border-radius: var(--radius-sm);
 }
+
+/* ===== 搜索 + 查重工具栏 ===== */
+.toolBar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--color-bubble-partner-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  background: var(--color-bg);
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-hint);
+}
+
+.clearSearchBtn {
+  padding: 4px 8px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-hint);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.clearSearchBtn:active {
+  background: var(--color-bg-warm);
+}
+
+.dedupBtn {
+  padding: 8px 14px;
+  font-size: var(--font-size-sm);
+  color: var(--color-warning);
+  background: rgba(226, 140, 67, 0.1);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.dedupBtn:active {
+  background: rgba(226, 140, 67, 0.2);
+}

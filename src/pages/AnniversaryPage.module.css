@@ -1,0 +1,231 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-bg);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--color-surface-gradient);
+  border-bottom: 1px solid var(--color-divider);
+  flex-shrink: 0;
+}
+
+.backBtn {
+  font-size: var(--font-size-md);
+  color: var(--color-accent);
+  padding: 4px 0;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.spacer {
+  width: 48px;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ===== 空状态 ===== */
+.emptyHint {
+  text-align: center;
+  margin-top: 60px;
+  color: var(--color-text-hint);
+  font-size: var(--font-size-md);
+}
+
+.subHint {
+  margin-top: 6px;
+  font-size: var(--font-size-sm);
+}
+
+/* ===== 纪念日卡片 ===== */
+.card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.cardToday {
+  border: 1px solid var(--color-orange);
+  background: var(--color-orange-soft);
+}
+
+.cardLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cardName {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.cardDate {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.typeTag {
+  display: inline-block;
+  padding: 1px 6px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.cardRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.cardDays {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.daysToday {
+  color: var(--color-orange);
+  font-size: var(--font-size-lg);
+}
+
+.menuWrap {
+  position: relative;
+}
+
+/* ===== 表单 ===== */
+.form {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.formTitle {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.formLabel {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+  margin-top: 10px;
+}
+
+.formLabel:first-of-type {
+  margin-top: 0;
+}
+
+.formInput {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-bubble-partner-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  background: var(--color-bg);
+}
+
+/* ===== 类型选择 ===== */
+.typeRow {
+  display: flex;
+  gap: 8px;
+}
+
+.typeBtn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px;
+  border: 1px solid var(--color-bubble-partner-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.typeBtnActive {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.typeBtnLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.typeBtnDesc {
+  font-size: 10px;
+  color: var(--color-text-hint);
+}
+
+/* ===== 表单按钮 ===== */
+.formActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.saveBtn {
+  flex: 1;
+  padding: 10px;
+  font-size: var(--font-size-md);
+  color: #fff;
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+}
+
+.cancelBtn {
+  padding: 10px 16px;
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+}
+
+/* ===== 添加按钮 ===== */
+.addBtn {
+  width: 100%;
+  padding: 12px;
+  font-size: var(--font-size-md);
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-accent-light);
+}

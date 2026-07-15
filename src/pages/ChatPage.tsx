@@ -47,8 +47,8 @@ async function seedCardsIfEmpty() {
 
 function ChatPage() {
   const {
-    messages, isTyping,
-    loadMessages, sendMessage, scheduleReply,
+    messages, isTyping, hasMore,
+    loadMessages, loadMoreMessages, sendMessage, scheduleReply,
   } = useChatStore();
   const { partnerName, chatBackground, loadSettings } = useSettingsStore();
 
@@ -56,6 +56,8 @@ function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
   const isLoaded = useRef(false);
+  const isLoadingMore = useRef(false);
+  const isInitialLoad = useRef(true);
 
   useEffect(() => {
     if (!isLoaded.current) {
@@ -66,12 +68,18 @@ function ChatPage() {
     }
   }, [loadSettings, loadMessages]);
 
-  // 消息变化时滚动到底部
+  // 消息变化时滚动到底部（仅新消息/初始加载时）
   useEffect(() => {
-    // 用 requestAnimationFrame 确保 DOM 已渲染
     requestAnimationFrame(() => {
       if (messageListRef.current) {
-        messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+        if (isInitialLoad.current) {
+          // 首次加载：滚到底部
+          isInitialLoad.current = false;
+          messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+        } else if (!isLoadingMore.current) {
+          // 新消息到达：滚到底部
+          messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+        }
       }
     });
   }, [messages]);
@@ -82,6 +90,22 @@ function ChatPage() {
       messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
     }
   }, [isTyping]);
+
+  // 加载更早的消息
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore.current || !hasMore) return;
+    isLoadingMore.current = true;
+    const oldScrollHeight = messageListRef.current?.scrollHeight || 0;
+    await loadMoreMessages();
+    // 恢复滚动位置
+    requestAnimationFrame(() => {
+      if (messageListRef.current) {
+        const newScrollHeight = messageListRef.current.scrollHeight;
+        messageListRef.current.scrollTop = newScrollHeight - oldScrollHeight;
+      }
+      isLoadingMore.current = false;
+    });
+  }, [hasMore, loadMoreMessages]);
 
   // 用户发送消息
   const handleSend = useCallback(async (
@@ -131,6 +155,14 @@ function ChatPage() {
           backgroundAttachment: 'fixed',
         } : undefined}
       >
+        {hasMore && (
+          <div className={styles.loadMoreBar}>
+            <button className={styles.loadMoreBtn} onClick={handleLoadMore}>
+              加载更早的消息
+            </button>
+          </div>
+        )}
+
         {messages.length === 0 && (
           <div className={styles.emptyHint}>
             <p>发送第一条消息吧</p>

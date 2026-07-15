@@ -34,6 +34,9 @@ export function CardManager() {
   // 表情包上传时的分类
   const [stickerUploadCategory, setStickerUploadCategory] = useState<string>('通用');
 
+  // 搜索
+  const [searchText, setSearchText] = useState('');
+
   // 加载分类列表
   const loadCategories = useCallback(async () => {
     const row = await db.settings.get('categories');
@@ -50,10 +53,21 @@ export function CardManager() {
     let query = db.cards.where('type').equals(activeTab);
     const all = await query.reverse().sortBy('createdAt');
     // 客户端按分类过滤
-    const filtered = filterCategory ? all.filter(c => c.category === filterCategory) : all;
+    let filtered = filterCategory ? all.filter(c => c.category === filterCategory) : all;
+    // 搜索过滤（模糊匹配）
+    if (searchText.trim()) {
+      const kw = searchText.trim().toLowerCase();
+      filtered = filtered.filter(c => {
+        if (c.type === 'sticker') {
+          // 表情包无法搜索 base64 内容，只搜分类名
+          return (c.category || '').toLowerCase().includes(kw);
+        }
+        return c.content.toLowerCase().includes(kw);
+      });
+    }
     setCards(filtered);
     setSelectedIds(new Set());
-  }, [activeTab, filterCategory]);
+  }, [activeTab, filterCategory, searchText]);
 
   useEffect(() => { loadCategories(); }, [loadCategories]);
   useEffect(() => { loadCards(); }, [loadCards]);
@@ -154,6 +168,31 @@ export function CardManager() {
     loadCards();
   };
 
+  // 查重：同类型+同内容只保留最早的一条，删掉多余的
+  const handleDedup = async () => {
+    const all = await db.cards.where('type').equals(activeTab).toArray();
+    const seen = new Map<string, number>(); // key: content, value: 保留的 id
+    const toDelete: number[] = [];
+
+    for (const card of all) {
+      const key = card.content;
+      if (seen.has(key)) {
+        toDelete.push(card.id!);
+      } else {
+        seen.set(key, card.id!);
+      }
+    }
+
+    if (toDelete.length === 0) {
+      alert('没有发现重复字卡');
+      return;
+    }
+
+    if (!confirm(`发现 ${toDelete.length} 条重复字卡，确定删除吗？（保留最早添加的）`)) return;
+    await db.cards.bulkDelete(toDelete);
+    loadCards();
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.tabs}>
@@ -166,6 +205,23 @@ export function CardManager() {
       </div>
 
       <div className={styles.content}>
+        {/* 搜索 + 查重 */}
+        <div className={styles.toolBar}>
+          <input
+            className={styles.searchInput}
+            type="text"
+            value={searchText}
+            onChange={e => setSearchText(e.target.value)}
+            placeholder="搜索字卡..."
+          />
+          {searchText && (
+            <button className={styles.clearSearchBtn} onClick={() => setSearchText('')}>✕</button>
+          )}
+          <button className={styles.dedupBtn} onClick={handleDedup}>
+            查重
+          </button>
+        </div>
+
         {/* 分类管理（仅文字 tab 显示） */}
         {activeTab === 'text' && (
           <div className={styles.catBar}>

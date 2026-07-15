@@ -170,3 +170,21 @@
 .toggleOn::after {
   transform: translateX(22px);
 }
+
+/* ===== 危险操作按钮 ===== */
+.dangerBtn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dangerBtn:active {
+  background: rgba(212, 149, 139, 0.25);
+}

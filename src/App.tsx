@@ -10,6 +10,7 @@ import DailyLifePage from './pages/DailyLifePage';
 import TextNotesPage from './pages/TextNotesPage';
 import AlbumPage from './pages/AlbumPage';
 import PhotoDetailPage from './pages/PhotoDetailPage';
+import AnniversaryPage from './pages/AnniversaryPage';
 import ProfilePage from './pages/ProfilePage';
 import CardLibraryPage from './pages/CardLibraryPage';
 import CompanionHistoryPage from './pages/CompanionHistoryPage';
@@ -46,6 +47,7 @@ function App() {
             <Route path="/records/daily/notes" element={<TextNotesPage />} />
             <Route path="/records/daily/album" element={<AlbumPage />} />
             <Route path="/records/daily/album/:photoId" element={<PhotoDetailPage />} />
+            <Route path="/records/anniversaries" element={<AnniversaryPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/cards" element={<CardLibraryPage />} />
             <Route path="/data" element={<DataManagePage />} />

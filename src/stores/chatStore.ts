@@ -9,6 +9,10 @@ let replyTimerId: ReturnType<typeof setTimeout> | null = null;
 let replyKind: 'cards' | 'choice' | 'both' | null = null;
 let replyChoiceContent: string = '';
 
+/** 每次加载的消息条数 */
+const MESSAGE_PAGE_SIZE = 200;
+const MESSAGE_LOAD_MORE = 100;
+
 async function executeCardsReply(
   addPartnerMessage: (card: Card, quoteId?: number, quoteContent?: string) => Promise<void>
 ) {
@@ -90,12 +94,15 @@ async function executeChoiceReply(choiceContent: string) {
 interface ChatState {
   messages: ChatMessage[];
   isTyping: boolean;
+  hasMore: boolean;
 
   loadMessages: () => Promise<void>;
+  loadMoreMessages: () => Promise<void>;
   sendMessage: (content: string, msgType?: ChatMessage['msgType'], quotedMessageId?: number, quotedContent?: string) => Promise<void>;
   addPartnerMessage: (card: Card, quoteId?: number, quoteContent?: string) => Promise<void>;
   setTyping: (v: boolean) => void;
   clearMessages: () => Promise<void>;
+  deleteMessagesBefore: (timestamp: number) => Promise<number>;
   /** 启动回复定时器（模块级，切屏不中断） */
   scheduleReply: (kind: 'cards' | 'choice' | 'both', choiceContent?: string) => void;
   /** 取消待执行的回复 */
@@ -105,10 +112,33 @@ interface ChatState {
 export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   isTyping: false,
+  hasMore: false,
 
   loadMessages: async () => {
-    const messages = await db.chatMessages.orderBy('timestamp').toArray();
-    set({ messages });
+    const total = await db.chatMessages.count();
+    const messages = await db.chatMessages
+      .orderBy('timestamp')
+      .reverse()
+      .limit(MESSAGE_PAGE_SIZE)
+      .toArray();
+    messages.reverse(); // 恢复时间正序
+    set({ messages, hasMore: total > MESSAGE_PAGE_SIZE });
+  },
+
+  loadMoreMessages: async () => {
+    const { messages } = get();
+    if (messages.length === 0) return;
+    const oldestTimestamp = messages[0].timestamp;
+    const older = await db.chatMessages
+      .where('timestamp')
+      .below(oldestTimestamp)
+      .reverse()
+      .limit(MESSAGE_LOAD_MORE)
+      .toArray();
+    older.reverse(); // 恢复时间正序
+    const totalBefore = await db.chatMessages
+      .where('timestamp').below(oldestTimestamp).count();
+    set({ messages: [...older, ...messages], hasMore: older.length < totalBefore });
   },
 
   sendMessage: async (content, msgType = 'text', quotedMessageId?, quotedContent?) => {
@@ -158,7 +188,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   clearMessages: async () => {
     await db.chatMessages.clear();
-    set({ messages: [] });
+    set({ messages: [], hasMore: false });
+  },
+
+  deleteMessagesBefore: async (timestamp: number) => {
+    const toDelete = await db.chatMessages.where('timestamp').below(timestamp).toArray();
+    if (toDelete.length > 0) {
+      await db.chatMessages.bulkDelete(toDelete.map(m => m.id!));
+    }
+    // 重新加载
+    await get().loadMessages();
+    return toDelete.length;
   },
 
   scheduleReply: (kind, choiceContent) => {

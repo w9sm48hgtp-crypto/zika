@@ -131,6 +131,15 @@ export interface Photo {
   createdAt: number;
 }
 
+/** 纪念日 */
+export interface Anniversary {
+  id?: number;
+  name: string;       // 纪念日名称（用户自定义）
+  date: string;       // YYYY-MM-DD
+  type: 'count_up' | 'count_down' | 'annual';
+  createdAt: number;
+}
+
 /** 文字便签 */
 export interface StickyNote {
   id?: number;
@@ -162,6 +171,7 @@ class ZiKaDatabase extends Dexie {
   photoAlbums!: EntityTable<PhotoAlbum, 'id'>;
   photos!: EntityTable<Photo, 'id'>;
   stickyNotes!: EntityTable<StickyNote, 'id'>;
+  anniversaries!: EntityTable<Anniversary, 'id'>;
 
   constructor() {
     super('ZiKaDatabase');
@@ -225,6 +235,16 @@ class ZiKaDatabase extends Dexie {
       photoAlbums: '++id, sortOrder',
       photos: '++id, albumId, createdAt',
       stickyNotes: '++id, createdAt',
+    });
+
+    // v8: 新增纪念日表
+    this.version(8).stores({
+      anniversaries: '++id, type, date',
+    });
+
+    // v9: 纪念日表补充 createdAt 索引
+    this.version(9).stores({
+      anniversaries: '++id, type, date, createdAt',
     });
   }
 }

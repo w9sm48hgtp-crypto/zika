@@ -63,3 +63,25 @@
   padding: 3px 10px;
   border-radius: var(--radius-full);
 }
+
+/* 加载更早的消息 */
+.loadMoreBar {
+  text-align: center;
+  padding: 8px 0;
+  flex-shrink: 0;
+}
+
+.loadMoreBtn {
+  display: inline-block;
+  padding: 6px 16px;
+  font-size: var(--font-size-sm);
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.loadMoreBtn:active {
+  background: var(--color-blue-soft);
+}

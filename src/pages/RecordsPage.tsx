@@ -6,9 +6,11 @@ import styles from './RecordsPage.module.css';
 function RecordsPage() {
   const navigate = useNavigate();
   const [letterCount, setLetterCount] = useState(0);
+  const [anniversaryCount, setAnniversaryCount] = useState(0);
 
   useEffect(() => {
     db.letters.count().then(setLetterCount);
+    db.anniversaries.count().then(setAnniversaryCount);
   }, []);
 
   const ENTRIES = [
@@ -16,6 +18,11 @@ function RecordsPage() {
       path: '/records/letters',
       name: '书信',
       desc: letterCount > 0 ? `共 ${letterCount} 封信` : '给他写信，等他的回信',
+    },
+    {
+      path: '/records/anniversaries',
+      name: '纪念日',
+      desc: anniversaryCount > 0 ? `共 ${anniversaryCount} 个纪念日` : '正数日 · 倒数日 · 每年同日',
     },
     {
       path: '/records/daily',
