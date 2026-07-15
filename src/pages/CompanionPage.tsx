@@ -200,6 +200,13 @@ function CompanionPage() {
       <h1 className="page-title">陪伴</h1>
 
       <div className={styles.card}>
+        {/* 装饰图 */}
+        <img
+          className={styles.timerDeco}
+          src={`${import.meta.env.BASE_URL}decorations/6.png`}
+          alt=""
+        />
+
         {/* 场景选择 */}
         <div className={styles.sceneRow}>
           {SCENES.map((s) => (

@@ -190,6 +190,11 @@ function TodoList({ partnerName }: TodoListProps) {
 
       {/* 累计计数器 */}
       <div className={styles.counterCard}>
+        <img
+          className={styles.counterDeco}
+          src={`${import.meta.env.BASE_URL}decorations/16.png`}
+          alt=""
+        />
         <p className={styles.counterTotal}>
           {companionName}已经累计陪你完成了 <strong>{totalCount}</strong> 项计划
         </p>

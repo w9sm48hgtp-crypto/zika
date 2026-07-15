@@ -50,6 +50,21 @@ function RecordsPage() {
           </button>
         ))}
       </div>
+
+      <div className={styles.bottomRow}>
+        <div className={styles.speechBubble}>
+          <img
+            className={styles.speechImg}
+            src={`${import.meta.env.BASE_URL}decorations/text2.png`}
+            alt=""
+          />
+        </div>
+        <img
+          className={styles.decoImg}
+          src={`${import.meta.env.BASE_URL}decorations/11.png`}
+          alt=""
+        />
+      </div>
     </div>
   );
 }

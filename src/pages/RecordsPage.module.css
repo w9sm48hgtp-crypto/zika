@@ -47,3 +47,46 @@
   color: var(--color-text-hint);
   flex-shrink: 0;
 }
+
+/* 底部行：文字气泡 + 装饰图 */
+.bottomRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 24px;
+}
+
+.speechBubble {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  width: 240px;
+  flex-shrink: 0;
+}
+
+.speechImg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 装饰图 */
+.decoImg {
+  width: 120px;
+  height: auto;
+  margin-right: 20px;
+  filter:
+    drop-shadow(1px 0 0 #fff)
+    drop-shadow(-1px 0 0 #fff)
+    drop-shadow(0 1px 0 #fff)
+    drop-shadow(0 -1px 0 #fff)
+    drop-shadow(1px 1px 0 #fff)
+    drop-shadow(-1px -1px 0 #fff)
+    drop-shadow(1px -1px 0 #fff)
+    drop-shadow(-1px 1px 0 #fff)
+    drop-shadow(0 3px 10px rgba(0, 0, 0, 0.12));
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}

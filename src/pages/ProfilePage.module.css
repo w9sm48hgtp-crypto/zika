@@ -61,3 +61,18 @@
   font-size: 22px;
   color: var(--color-text-hint);
 }
+
+/* 版本号区域 */
+.versionWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0 16px;
+}
+
+.versionText {
+  text-align: center;
+  color: var(--color-text-hint);
+  font-size: 12px;
+  margin: 0;
+}

@@ -125,6 +125,11 @@ function DailyPage() {
 
       {/* 月历 */}
       <div className={styles.calendar}>
+        <img
+          className={styles.calendarDeco}
+          src={`${import.meta.env.BASE_URL}decorations/18.png`}
+          alt=""
+        />
         <div className={styles.monthNav}>
           <button className={styles.monthBtn} onClick={() => goMonth(-1)}>&lt;</button>
           <span className={styles.monthLabel}>{year}年{month}月</span>
@@ -183,6 +188,11 @@ function DailyPage() {
       {/* 日期详情面板 */}
       {selectedDate && (
         <div className={styles.detailPanel}>
+          <img
+            className={styles.detailDeco}
+            src={`${import.meta.env.BASE_URL}decorations/19.png`}
+            alt=""
+          />
           <div className={styles.detailHeader}>
             <span className={styles.detailDate}>{formatDateCN(selectedDate)}</span>
             <button className={styles.detailClose} onClick={clearSelection}>x</button>

@@ -12,6 +12,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/icon-192.svg', 'icons/icon-512.svg'],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+      },
       manifest: {
         name: '字卡 - 恋爱陪伴',
         short_name: '字卡',

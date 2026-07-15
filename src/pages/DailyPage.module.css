@@ -1,10 +1,34 @@
 /* ===== 月历 ===== */
 .calendar {
+  position: relative;
   background: var(--color-surface-gradient);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  overflow: visible;
   margin-bottom: 12px;
+}
+
+/* 日历装饰图 — 左上角 */
+.calendarDeco {
+  position: absolute;
+  bottom: -24px;
+  left: -18px;
+  width: 100px;
+  height: auto;
+  filter:
+    drop-shadow(1px 0 0 #fff)
+    drop-shadow(-1px 0 0 #fff)
+    drop-shadow(0 1px 0 #fff)
+    drop-shadow(0 -1px 0 #fff)
+    drop-shadow(1px 1px 0 #fff)
+    drop-shadow(-1px -1px 0 #fff)
+    drop-shadow(1px -1px 0 #fff)
+    drop-shadow(-1px 1px 0 #fff)
+    drop-shadow(0 3px 10px rgba(0, 0, 0, 0.12));
+  z-index: 2;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .monthNav {
@@ -170,12 +194,37 @@
 
 /* ===== 详情面板 ===== */
 .detailPanel {
+  position: relative;
   background: var(--color-surface-gradient);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   padding: 16px;
   margin-bottom: 12px;
   animation: fadeIn 0.2s ease;
+  overflow: visible;
+}
+
+/* 日期详情装饰图 — 右下角 */
+.detailDeco {
+  position: absolute;
+  bottom: -20px;
+  right: -18px;
+  width: 100px;
+  height: auto;
+  filter:
+    drop-shadow(1px 0 0 #fff)
+    drop-shadow(-1px 0 0 #fff)
+    drop-shadow(0 1px 0 #fff)
+    drop-shadow(0 -1px 0 #fff)
+    drop-shadow(1px 1px 0 #fff)
+    drop-shadow(-1px -1px 0 #fff)
+    drop-shadow(1px -1px 0 #fff)
+    drop-shadow(-1px 1px 0 #fff)
+    drop-shadow(0 3px 10px rgba(0, 0, 0, 0.12));
+  z-index: 2;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .detailHeader {

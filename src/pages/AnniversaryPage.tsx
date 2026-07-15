@@ -227,6 +227,23 @@ function AnniversaryPage() {
             + 添加纪念日
           </button>
         )}
+
+        <div className={styles.spacerTop} />
+        <div className={styles.decoWrap}>
+          <div className={styles.speechBubble}>
+            <img
+              className={styles.speechImg}
+              src={`${import.meta.env.BASE_URL}decorations/text1.png`}
+              alt=""
+            />
+          </div>
+          <img
+            className={styles.pageDeco}
+            src={`${import.meta.env.BASE_URL}decorations/23.png`}
+            alt=""
+          />
+        </div>
+        <div className={styles.spacerBottom} />
       </div>
     </div>
   );

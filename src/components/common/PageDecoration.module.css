@@ -1,0 +1,52 @@
+/* 装饰容器 — 覆盖整个页面，不响应任何交互 */
+.container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* 单张装饰图 */
+.deco {
+  position: absolute;
+  width: 120px;
+  height: auto;
+  opacity: 1;
+  transition: opacity 0.3s;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ===== 位置预设 ===== */
+.pos_tl {
+  top: 10px;
+  left: 10px;
+}
+
+.pos_tr {
+  top: 10px;
+  right: 10px;
+}
+
+.pos_bl {
+  bottom: 10px;
+  left: 10px;
+}
+
+.pos_br {
+  bottom: 10px;
+  right: 10px;
+}
+
+.pos_ml {
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+}
+
+.pos_mr {
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+}

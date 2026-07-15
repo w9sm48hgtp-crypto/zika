@@ -67,9 +67,11 @@ function ProfilePage() {
         </button>
       </div>
 
-      <p style={{ textAlign: 'center', color: 'var(--color-text-hint)', fontSize: '12px', padding: '24px 0 16px' }}>
-        v{APP_VERSION}
-      </p>
+      <div className={styles.versionWrap}>
+        <p className={styles.versionText}>
+          v{APP_VERSION}
+        </p>
+      </div>
     </div>
   );
 }

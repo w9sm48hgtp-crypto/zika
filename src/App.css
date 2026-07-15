@@ -62,6 +62,7 @@
 
 /* ===== 页面通用 ===== */
 .page {
+  position: relative;
   padding: var(--spacing-xl);
   min-height: 100%;
   animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);

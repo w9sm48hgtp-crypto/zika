@@ -1,9 +1,35 @@
 .card {
+  position: relative;
   background: var(--color-surface-gradient);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   padding: 20px 16px;
   margin-bottom: 16px;
+  overflow: visible;
+}
+
+/* 计时器装饰图 — 右上角，部分溢出框外 */
+.timerDeco {
+  position: absolute;
+  top: -20px;
+  right: -16px;
+  width: 90px;
+  height: auto;
+  /* 沿透明底图形状外圈描白边 + 投影 */
+  filter:
+    drop-shadow(1px 0 0 #fff)
+    drop-shadow(-1px 0 0 #fff)
+    drop-shadow(0 1px 0 #fff)
+    drop-shadow(0 -1px 0 #fff)
+    drop-shadow(1px 1px 0 #fff)
+    drop-shadow(-1px -1px 0 #fff)
+    drop-shadow(1px -1px 0 #fff)
+    drop-shadow(-1px 1px 0 #fff)
+    drop-shadow(0 3px 10px rgba(0, 0, 0, 0.12));
+  z-index: 2;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 /* 场景选择 */
