@@ -10,8 +10,8 @@ let replyKind: 'cards' | 'choice' | 'both' | null = null;
 let replyChoiceContent: string = '';
 
 /** 每次加载的消息条数 */
-const MESSAGE_PAGE_SIZE = 200;
-const MESSAGE_LOAD_MORE = 100;
+const MESSAGE_PAGE_SIZE = 50;
+const MESSAGE_LOAD_MORE = 50;
 
 async function executeCardsReply(
   addPartnerMessage: (card: Card, quoteId?: number, quoteContent?: string) => Promise<void>
@@ -202,11 +202,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   scheduleReply: (kind, choiceContent) => {
-    // 清除旧定时器
+    // 合并逻辑：如果已有待回复内容，合并类型（不取消旧的）
+    if (replyKind && replyKind !== kind) {
+      replyKind = 'both';
+    } else {
+      replyKind = kind;
+    }
+    // 合并 choiceContent（选择题只保留最新的内容）
+    if (choiceContent) {
+      replyChoiceContent = choiceContent;
+    }
+    // 清除旧定时器，重新计时
     if (replyTimerId) { clearTimeout(replyTimerId); replyTimerId = null; }
 
-    replyKind = kind;
-    replyChoiceContent = choiceContent || '';
     set({ isTyping: true });
 
     const settings = useSettingsStore.getState();
@@ -216,11 +224,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
       replyTimerId = null;
       try {
         const addFn = get().addPartnerMessage;
-        if (replyKind === 'cards' || replyKind === 'both') {
-          await executeCardsReply(addFn);
-        }
+        // 先回选择题，再回字卡
         if ((replyKind === 'choice' || replyKind === 'both') && replyChoiceContent) {
           await executeChoiceReply(replyChoiceContent);
+        }
+        if (replyKind === 'cards' || replyKind === 'both') {
+          await executeCardsReply(addFn);
         }
       } catch (err) {
         console.error('reply error:', err);

@@ -8,23 +8,13 @@
   margin-bottom: 12px;
 }
 
-/* 日历装饰图 — 左上角 */
+/* 日历装饰图 — 左下角 */
 .calendarDeco {
   position: absolute;
   bottom: -24px;
   left: -18px;
   width: 100px;
   height: auto;
-  filter:
-    drop-shadow(1px 0 0 #fff)
-    drop-shadow(-1px 0 0 #fff)
-    drop-shadow(0 1px 0 #fff)
-    drop-shadow(0 -1px 0 #fff)
-    drop-shadow(1px 1px 0 #fff)
-    drop-shadow(-1px -1px 0 #fff)
-    drop-shadow(1px -1px 0 #fff)
-    drop-shadow(-1px 1px 0 #fff)
-    drop-shadow(0 3px 10px rgba(0, 0, 0, 0.12));
   z-index: 2;
   pointer-events: none;
   user-select: none;
@@ -211,16 +201,6 @@
   right: -18px;
   width: 100px;
   height: auto;
-  filter:
-    drop-shadow(1px 0 0 #fff)
-    drop-shadow(-1px 0 0 #fff)
-    drop-shadow(0 1px 0 #fff)
-    drop-shadow(0 -1px 0 #fff)
-    drop-shadow(1px 1px 0 #fff)
-    drop-shadow(-1px -1px 0 #fff)
-    drop-shadow(1px -1px 0 #fff)
-    drop-shadow(-1px 1px 0 #fff)
-    drop-shadow(0 3px 10px rgba(0, 0, 0, 0.12));
   z-index: 2;
   pointer-events: none;
   user-select: none;

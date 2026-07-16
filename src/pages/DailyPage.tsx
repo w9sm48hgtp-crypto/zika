@@ -125,11 +125,30 @@ function DailyPage() {
 
       {/* 月历 */}
       <div className={styles.calendar}>
-        <img
+        <svg
           className={styles.calendarDeco}
-          src={`${import.meta.env.BASE_URL}decorations/18.png`}
-          alt=""
-        />
+          viewBox="0 0 100 100"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <filter id="calDecoFilter" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="1" dy="0" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="-1" dy="0" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="0" dy="1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="0" dy="-1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="1" dy="1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="-1" dy="-1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="1" dy="-1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="-1" dy="1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.15" />
+            </filter>
+          </defs>
+          <image
+            width="100" height="100"
+            href={`${import.meta.env.BASE_URL}decorations/18.png`}
+            filter="url(#calDecoFilter)"
+          />
+        </svg>
         <div className={styles.monthNav}>
           <button className={styles.monthBtn} onClick={() => goMonth(-1)}>&lt;</button>
           <span className={styles.monthLabel}>{year}年{month}月</span>
@@ -188,11 +207,30 @@ function DailyPage() {
       {/* 日期详情面板 */}
       {selectedDate && (
         <div className={styles.detailPanel}>
-          <img
+          <svg
             className={styles.detailDeco}
-            src={`${import.meta.env.BASE_URL}decorations/19.png`}
-            alt=""
-          />
+            viewBox="0 0 100 100"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <filter id="detailDecoFilter" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="1" dy="0" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+                <feDropShadow dx="-1" dy="0" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+                <feDropShadow dx="0" dy="1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+                <feDropShadow dx="0" dy="-1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+                <feDropShadow dx="1" dy="1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+                <feDropShadow dx="-1" dy="-1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+                <feDropShadow dx="1" dy="-1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+                <feDropShadow dx="-1" dy="1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+                <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.15" />
+              </filter>
+            </defs>
+            <image
+              width="100" height="100"
+              href={`${import.meta.env.BASE_URL}decorations/19.png`}
+              filter="url(#detailDecoFilter)"
+            />
+          </svg>
           <div className={styles.detailHeader}>
             <span className={styles.detailDate}>{formatDateCN(selectedDate)}</span>
             <button className={styles.detailClose} onClick={clearSelection}>x</button>

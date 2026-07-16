@@ -201,11 +201,30 @@ function CompanionPage() {
 
       <div className={styles.card}>
         {/* 装饰图 */}
-        <img
+        <svg
           className={styles.timerDeco}
-          src={`${import.meta.env.BASE_URL}decorations/6.png`}
-          alt=""
-        />
+          viewBox="0 0 100 100"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <filter id="timerDecoFilter" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="1" dy="0" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="-1" dy="0" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="0" dy="1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="0" dy="-1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="1" dy="1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="-1" dy="-1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="1" dy="-1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="-1" dy="1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.15" />
+            </filter>
+          </defs>
+          <image
+            width="100" height="100"
+            href={`${import.meta.env.BASE_URL}decorations/6.png`}
+            filter="url(#timerDecoFilter)"
+          />
+        </svg>
 
         {/* 场景选择 */}
         <div className={styles.sceneRow}>

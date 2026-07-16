@@ -228,22 +228,41 @@ function AnniversaryPage() {
           </button>
         )}
 
-        <div className={styles.spacerTop} />
-        <div className={styles.decoWrap}>
-          <div className={styles.speechBubble}>
-            <img
-              className={styles.speechImg}
-              src={`${import.meta.env.BASE_URL}decorations/text1.png`}
-              alt=""
-            />
-          </div>
-          <img
-            className={styles.pageDeco}
-            src={`${import.meta.env.BASE_URL}decorations/23.png`}
-            alt=""
+        <svg
+          className={styles.decoSvg}
+          viewBox="0 0 390 260"
+          width="100%"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <filter id="bubbleShadow">
+              <feDropShadow dx="0" dy="2" stdDeviation="6" flood-opacity="0.1" />
+            </filter>
+            <filter id="pageDecoFilter" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="1" dy="0" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="-1" dy="0" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="0" dy="1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="0" dy="-1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="1" dy="1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="-1" dy="-1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="1" dy="-1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="-1" dy="1" stdDeviation="0" flood-color="#fff" flood-opacity="1" />
+              <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.15" />
+            </filter>
+          </defs>
+          {/* 文字气泡 */}
+          <rect x="40" y="20" width="220" height="210" rx="12" fill="#fff" filter="url(#bubbleShadow)" />
+          <image
+            x="56" y="32" width="188"
+            href={`${import.meta.env.BASE_URL}decorations/text1.png`}
           />
-        </div>
-        <div className={styles.spacerBottom} />
+          {/* 23号装饰图 */}
+          <image
+            x="270" y="50" width="110"
+            href={`${import.meta.env.BASE_URL}decorations/23.png`}
+            filter="url(#pageDecoFilter)"
+          />
+        </svg>
       </div>
     </div>
   );
