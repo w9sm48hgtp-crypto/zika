@@ -230,7 +230,7 @@ function AnniversaryPage() {
 
         <svg
           className={styles.decoSvg}
-          viewBox="0 0 390 260"
+          viewBox="0 0 390 150"
           width="100%"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -250,15 +250,15 @@ function AnniversaryPage() {
               <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.15" />
             </filter>
           </defs>
-          {/* 文字气泡 */}
-          <rect x="40" y="20" width="220" height="210" rx="12" fill="#fff" filter="url(#bubbleShadow)" />
+          {/* 文字气泡 — 高度和23号图一致 */}
+          <rect x="32" y="20" width="210" height="110" rx="12" fill="#fff" filter="url(#bubbleShadow)" />
           <image
-            x="56" y="32" width="188"
+            x="48" y="32" width="178"
             href={`${import.meta.env.BASE_URL}decorations/text1.png`}
           />
           {/* 23号装饰图 */}
           <image
-            x="270" y="50" width="110"
+            x="252" y="20" width="110"
             href={`${import.meta.env.BASE_URL}decorations/23.png`}
             filter="url(#pageDecoFilter)"
           />
