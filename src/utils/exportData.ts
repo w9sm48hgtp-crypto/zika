@@ -191,9 +191,27 @@ export function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/** 触发浏览器下载 */
-export function downloadJson(data: unknown, filename: string): void {
-  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+/** 触发浏览器下载（优先用系统分享面板，避免 Blob URL 导致手机浏览器闪退） */
+export async function downloadJson(data: unknown, filename: string): Promise<void> {
+  const jsonStr = JSON.stringify(data);
+  const file = new File([jsonStr], filename, { type: 'application/json' });
+
+  // 优先使用系统分享面板（手机浏览器原生支持，不会闪退）
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: '字卡数据备份',
+      });
+      return;
+    } catch {
+      // 用户取消分享，不需要 fallback
+      return;
+    }
+  }
+
+  // 回退：传统下载方式（桌面浏览器）
+  const blob = new Blob([jsonStr], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
