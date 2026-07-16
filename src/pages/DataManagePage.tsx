@@ -101,7 +101,7 @@ function DataManagePage() {
       const data = await exportModules(Array.from(exportSelected));
       const now = new Date();
       const filename = `zika-backup-${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}.json`;
-      downloadJson(data, filename);
+      await downloadJson(data, filename);
     } catch (err) {
       console.error('Export failed:', err);
     } finally {

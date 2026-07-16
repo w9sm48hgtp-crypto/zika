@@ -191,21 +191,40 @@ export function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/** 触发浏览器下载（用 base64 data URI，不依赖 Blob/File/Share 等新 API，兼容旧浏览器） */
-export function downloadJson(data: unknown, filename: string): void {
+/** 触发浏览器导出（逐层回退：系统分享 → 剪贴板 → 新窗口） */
+export async function downloadJson(data: unknown, _filename: string): Promise<void> {
   const jsonStr = JSON.stringify(data);
-  // 使用 base64 data URI 下载，避免 Blob URL 或 File API 在旧手机上闪退
-  const bytes = new TextEncoder().encode(jsonStr);
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
+
+  // 方案1：系统分享面板（纯文本，不需要 File 构造函数）
+  if (navigator.share) {
+    try {
+      await navigator.share({ text: jsonStr, title: '字卡数据备份' });
+      return;
+    } catch {
+      // 用户取消 → 什么都不做
+      return;
+    }
   }
-  const base64 = btoa(binary);
-  const a = document.createElement('a');
-  a.href = 'data:application/json;base64,' + base64;
-  a.download = filename;
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => document.body.removeChild(a), 1000);
+
+  // 方案2：复制到剪贴板
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(jsonStr);
+      alert('数据已复制到剪贴板！请打开备忘录粘贴保存。');
+      return;
+    } catch {
+      // 继续回退
+    }
+  }
+
+  // 方案3：新窗口显示（最后回退）
+  const w = window.open('');
+  if (w) {
+    w.document.write('<html><body><pre style="white-space:pre-wrap;word-break:break-all;font-size:12px;">' +
+      jsonStr.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') +
+      '</pre></body></html>');
+    w.document.close();
+  } else {
+    alert('导出失败：浏览器阻止了新窗口。请在地址栏中允许弹出窗口后重试。');
+  }
 }
