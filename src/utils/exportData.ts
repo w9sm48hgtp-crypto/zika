@@ -191,84 +191,46 @@ export function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/** 触发浏览器导出（系统分享 → 页内下载按钮） */
+/** 触发浏览器导出（系统分享文本 → 系统分享文件 → 提示用浏览器打开） */
 export async function downloadJson(data: unknown, filename: string): Promise<void> {
   const jsonStr = JSON.stringify(data);
 
-  // 方案1：系统分享面板（纯文本，适合小数据量）
+  // 方案1：系统分享面板 — 纯文本
   if (navigator.share) {
     try {
       await navigator.share({ text: jsonStr, title: '字卡数据备份' });
-      return; // 分享成功
+      return;
     } catch (err: any) {
-      // 用户点取消（AbortError）→ 停止
       if (err?.name === 'AbortError') {
         alert('已取消导出。');
         return;
       }
-      // 其他错误（如数据太大）→ 继续方案2
+      // 非取消错误 → 可能是文本太大，尝试方案2
     }
   }
 
-  // 方案2：页内下载按钮 — 用户手动点击下载，不用 a.click() 避免闪退
-  const blob = new Blob([jsonStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
+  // 方案2：分享为 .json 文件（先检查浏览器是否支持）
+  if (navigator.share && navigator.canShare) {
+    try {
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const file = new File([blob], filename, { type: 'application/json' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: '字卡数据备份' });
+        return;
+      }
+    } catch (err: any) {
+      if (err?.name === 'AbortError') {
+        alert('已取消导出。');
+        return;
+      }
+      // 失败 → 继续
+    }
+  }
 
-  const overlay = document.createElement('div');
-  overlay.style.cssText =
-    'position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;z-index:99999;display:flex;flex-direction:column;padding:16px;box-sizing:border-box;';
-  overlay.id = 'export-overlay';
-
-  const title = document.createElement('div');
-  title.textContent = '导出数据';
-  title.style.cssText = 'color:#e0c8a5;font-size:16px;font-weight:bold;margin-bottom:4px;text-align:center;';
-
-  const hint = document.createElement('div');
-  hint.textContent = '点击下方按钮下载 JSON 文件。如下载失败，可在下方文本框全选复制。';
-  hint.style.cssText = 'color:#8f8f9f;font-size:13px;margin-bottom:16px;text-align:center;';
-
-  // 下载按钮（用 <a> 标签，手动点击不自动触发）
-  const downloadLink = document.createElement('a');
-  downloadLink.href = url;
-  downloadLink.download = filename;
-  downloadLink.textContent = `下载 ${filename}`;
-  downloadLink.style.cssText =
-    'display:block;padding:14px;background:#8f7a5e;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:bold;text-align:center;text-decoration:none;cursor:pointer;margin-bottom:16px;';
-
-  // 文本框（备用手动复制）
-  const textarea = document.createElement('textarea');
-  textarea.value = jsonStr;
-  textarea.readOnly = false;
-  textarea.style.cssText =
-    'flex:1;width:100%;background:#0d0d1a;color:#c8bfb0;border:1px solid #3a3550;border-radius:8px;padding:12px;font-size:11px;font-family:monospace;resize:none;box-sizing:border-box;';
-
-  const btnRow = document.createElement('div');
-  btnRow.style.cssText = 'display:flex;gap:10px;margin-top:12px;';
-
-  const selectBtn = document.createElement('button');
-  selectBtn.textContent = '全选文字';
-  selectBtn.style.cssText =
-    'flex:1;padding:12px;background:#3a3550;color:#c8bfb0;border:none;border-radius:8px;font-size:15px;cursor:pointer;';
-  selectBtn.onclick = () => {
-    textarea.focus();
-    textarea.select();
-  };
-
-  const closeBtn = document.createElement('button');
-  closeBtn.textContent = '关闭';
-  closeBtn.style.cssText =
-    'padding:12px 24px;background:#3a3550;color:#c8bfb0;border:none;border-radius:8px;font-size:15px;cursor:pointer;';
-  closeBtn.onclick = () => {
-    document.body.removeChild(overlay);
-    URL.revokeObjectURL(url);
-  };
-
-  btnRow.appendChild(selectBtn);
-  btnRow.appendChild(closeBtn);
-  overlay.appendChild(title);
-  overlay.appendChild(hint);
-  overlay.appendChild(downloadLink);
-  overlay.appendChild(textarea);
-  overlay.appendChild(btnRow);
-  document.body.appendChild(overlay);
+  // 方案3：导出失败，提示用系统浏览器打开本页面再导出
+  alert(
+    '导出失败：当前应用环境不支持导出功能。\n\n' +
+    '请在系统浏览器（如华为浏览器或Chrome）中打开本页面，\n' +
+    '再从数据管理页面导出，即可正常下载 JSON 文件。'
+  );
 }
