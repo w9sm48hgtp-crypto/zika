@@ -279,6 +279,21 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
         }
         break;
       }
+      case 'anniversaries': {
+        if (!Array.isArray(value)) continue;
+        const existing = await db.anniversaries.toArray();
+        const existingKeys = new Set(existing.map(a => `${a.name}|${a.date}|${a.type}`));
+        const toAdd = value
+          .filter((a: any) => !existingKeys.has(`${a.name}|${a.date}|${a.type}`))
+          .map(({ id, ...rest }: any) => ({
+            name: rest.name,
+            date: rest.date,
+            type: rest.type,
+            createdAt: rest.createdAt || Date.now(),
+          }));
+        if (toAdd.length > 0) await db.anniversaries.bulkAdd(toAdd as any);
+        break;
+      }
     }
   }
 }
@@ -297,6 +312,7 @@ function getModuleLabel(key: string): string {
     todo: 'Todo 计划',
     stickyNotes: '文字便签',
     photoAlbums: '相册数据',
+    anniversaries: '纪念日',
   };
   return map[key] || key;
 }

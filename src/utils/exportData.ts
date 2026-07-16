@@ -20,6 +20,7 @@ export const EXPORT_MODULES: ExportModule[] = [
   { key: 'todo', label: 'Todo 计划', description: '累计完成数、每日计划、自定义分类和项目' },
   { key: 'stickyNotes', label: '文字便签', description: '日常随手记录的文字便签' },
   { key: 'photoAlbums', label: '相册数据', description: '相册分类、照片及说明' },
+  { key: 'anniversaries', label: '纪念日', description: '正数日、倒数日、每年同日' },
 ];
 
 export interface ExportData {
@@ -108,6 +109,11 @@ export async function exportModules(moduleKeys: string[]): Promise<ExportData> {
         modules.photoAlbums = { albums, photos };
         break;
       }
+      case 'anniversaries': {
+        const anniversaries = await db.anniversaries.toArray();
+        modules.anniversaries = anniversaries;
+        break;
+      }
     }
   }
 
@@ -122,11 +128,11 @@ export async function exportModules(moduleKeys: string[]): Promise<ExportData> {
 export async function estimateModuleSizes(): Promise<Record<string, number>> {
   const sizes: Record<string, number> = {};
 
-  const cards = await db.cards.toArray();
-  sizes.cards = new Blob([JSON.stringify(cards)]).size;
-
-  const tracks = await db.soundTracks.toArray();
-  sizes.soundTracks = new Blob([JSON.stringify(tracks)]).size;
+  // 字卡库和白噪音用 count() 粗略估算，避免加载 base64 数据占满内存导致闪退
+  const cardCount = await db.cards.count();
+  sizes.cards = cardCount * 5000; // 纯文字约200B，表情包可达100KB+，取粗略平均值
+  const trackCount = await db.soundTracks.count();
+  sizes.soundTracks = trackCount * 500000;
 
   const pm = await db.settings.get('periodMessages');
   sizes.periodMessages = new Blob([JSON.stringify(pm?.value ?? [])]).size;
@@ -172,6 +178,9 @@ export async function estimateModuleSizes(): Promise<Record<string, number>> {
   const photoList = await db.photos.toArray();
   sizes.photoAlbums = new Blob([JSON.stringify({ albums: albumList, photos: photoList })]).size;
 
+  const anniversaries = await db.anniversaries.toArray();
+  sizes.anniversaries = new Blob([JSON.stringify(anniversaries)]).size;
+
   return sizes;
 }
 
@@ -184,7 +193,7 @@ export function formatSize(bytes: number): string {
 
 /** 触发浏览器下载 */
 export function downloadJson(data: unknown, filename: string): void {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
