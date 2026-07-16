@@ -221,39 +221,43 @@ export async function downloadJson(data: unknown, _filename: string): Promise<vo
     }
   }
 
-  // 方案3：页内显示文本框（PWA 无弹窗，最稳妥的回退）
-  // 在页面上动态创建一个全屏遮罩，内含可复制的文本框
+  // 方案3：页内显示文本框（PWA 无弹窗，用系统自带长按菜单复制）
   const overlay = document.createElement('div');
   overlay.style.cssText =
     'position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;z-index:99999;display:flex;flex-direction:column;padding:16px;box-sizing:border-box;';
   overlay.id = 'export-overlay';
 
   const title = document.createElement('div');
-  title.textContent = '导出数据（全选后复制）';
-  title.style.cssText = 'color:#e0c8a5;font-size:16px;font-weight:bold;margin-bottom:12px;text-align:center;';
+  title.textContent = '导出数据';
+  title.style.cssText = 'color:#e0c8a5;font-size:16px;font-weight:bold;margin-bottom:4px;text-align:center;';
+
+  const hint = document.createElement('div');
+  hint.textContent = '点击「全选」→ 长按选中区域 → 点系统弹出的「复制」';
+  hint.style.cssText = 'color:#8f8f9f;font-size:13px;margin-bottom:12px;text-align:center;';
 
   const textarea = document.createElement('textarea');
   textarea.value = jsonStr;
-  textarea.readOnly = true;
+  textarea.readOnly = false;
   textarea.style.cssText =
     'flex:1;width:100%;background:#0d0d1a;color:#c8bfb0;border:1px solid #3a3550;border-radius:8px;padding:12px;font-size:11px;font-family:monospace;resize:none;box-sizing:border-box;';
 
   const btnRow = document.createElement('div');
   btnRow.style.cssText = 'display:flex;gap:10px;margin-top:12px;';
 
-  const copyBtn = document.createElement('button');
-  copyBtn.textContent = '复制全部';
-  copyBtn.style.cssText =
+  const selectBtn = document.createElement('button');
+  selectBtn.textContent = '全选';
+  selectBtn.style.cssText =
     'flex:1;padding:12px;background:#8f7a5e;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;';
-  copyBtn.onclick = () => {
+  selectBtn.onclick = () => {
+    textarea.focus();
     textarea.select();
-    document.execCommand('copy');
-    // 如果 clipboard API 可用也试一下
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(jsonStr).catch(() => {});
+    // 顺便尝试程序复制（不保证成功，所以不提示"已复制"）
+    try {
+      document.execCommand('copy');
+      navigator.clipboard?.writeText(jsonStr)?.catch(() => {});
+    } catch {
+      // 静默失败，用户用长按菜单复制即可
     }
-    copyBtn.textContent = '已复制！';
-    setTimeout(() => { copyBtn.textContent = '复制全部'; }, 2000);
   };
 
   const closeBtn = document.createElement('button');
@@ -262,9 +266,10 @@ export async function downloadJson(data: unknown, _filename: string): Promise<vo
     'padding:12px 24px;background:#3a3550;color:#c8bfb0;border:none;border-radius:8px;font-size:15px;cursor:pointer;';
   closeBtn.onclick = () => document.body.removeChild(overlay);
 
-  btnRow.appendChild(copyBtn);
+  btnRow.appendChild(selectBtn);
   btnRow.appendChild(closeBtn);
   overlay.appendChild(title);
+  overlay.appendChild(hint);
   overlay.appendChild(textarea);
   overlay.appendChild(btnRow);
   document.body.appendChild(overlay);
