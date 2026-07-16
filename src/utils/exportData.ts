@@ -191,7 +191,7 @@ export function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/** 触发浏览器导出（逐层回退：系统分享 → 剪贴板 → 新窗口） */
+/** 触发浏览器导出（逐层回退：系统分享 → 剪贴板 → 页内展示） */
 export async function downloadJson(data: unknown, _filename: string): Promise<void> {
   const jsonStr = JSON.stringify(data);
 
@@ -199,10 +199,14 @@ export async function downloadJson(data: unknown, _filename: string): Promise<vo
   if (navigator.share) {
     try {
       await navigator.share({ text: jsonStr, title: '字卡数据备份' });
-      return;
-    } catch {
-      // 用户取消 → 什么都不做
-      return;
+      return; // 分享成功
+    } catch (err: any) {
+      // 用户点取消（AbortError）→ 提示已取消
+      if (err?.name === 'AbortError') {
+        alert('已取消导出。');
+        return;
+      }
+      // 其他错误（如数据太大）→ 继续尝试方案2
     }
   }
 
@@ -217,14 +221,51 @@ export async function downloadJson(data: unknown, _filename: string): Promise<vo
     }
   }
 
-  // 方案3：新窗口显示（最后回退）
-  const w = window.open('');
-  if (w) {
-    w.document.write('<html><body><pre style="white-space:pre-wrap;word-break:break-all;font-size:12px;">' +
-      jsonStr.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') +
-      '</pre></body></html>');
-    w.document.close();
-  } else {
-    alert('导出失败：浏览器阻止了新窗口。请在地址栏中允许弹出窗口后重试。');
-  }
+  // 方案3：页内显示文本框（PWA 无弹窗，最稳妥的回退）
+  // 在页面上动态创建一个全屏遮罩，内含可复制的文本框
+  const overlay = document.createElement('div');
+  overlay.style.cssText =
+    'position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;z-index:99999;display:flex;flex-direction:column;padding:16px;box-sizing:border-box;';
+  overlay.id = 'export-overlay';
+
+  const title = document.createElement('div');
+  title.textContent = '导出数据（全选后复制）';
+  title.style.cssText = 'color:#e0c8a5;font-size:16px;font-weight:bold;margin-bottom:12px;text-align:center;';
+
+  const textarea = document.createElement('textarea');
+  textarea.value = jsonStr;
+  textarea.readOnly = true;
+  textarea.style.cssText =
+    'flex:1;width:100%;background:#0d0d1a;color:#c8bfb0;border:1px solid #3a3550;border-radius:8px;padding:12px;font-size:11px;font-family:monospace;resize:none;box-sizing:border-box;';
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:10px;margin-top:12px;';
+
+  const copyBtn = document.createElement('button');
+  copyBtn.textContent = '复制全部';
+  copyBtn.style.cssText =
+    'flex:1;padding:12px;background:#8f7a5e;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer;';
+  copyBtn.onclick = () => {
+    textarea.select();
+    document.execCommand('copy');
+    // 如果 clipboard API 可用也试一下
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(jsonStr).catch(() => {});
+    }
+    copyBtn.textContent = '已复制！';
+    setTimeout(() => { copyBtn.textContent = '复制全部'; }, 2000);
+  };
+
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '关闭';
+  closeBtn.style.cssText =
+    'padding:12px 24px;background:#3a3550;color:#c8bfb0;border:none;border-radius:8px;font-size:15px;cursor:pointer;';
+  closeBtn.onclick = () => document.body.removeChild(overlay);
+
+  btnRow.appendChild(copyBtn);
+  btnRow.appendChild(closeBtn);
+  overlay.appendChild(title);
+  overlay.appendChild(textarea);
+  overlay.appendChild(btnRow);
+  document.body.appendChild(overlay);
 }
