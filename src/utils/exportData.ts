@@ -191,33 +191,21 @@ export function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/** 触发浏览器下载（优先用系统分享面板，避免 Blob URL 导致手机浏览器闪退） */
-export async function downloadJson(data: unknown, filename: string): Promise<void> {
+/** 触发浏览器下载（用 base64 data URI，不依赖 Blob/File/Share 等新 API，兼容旧浏览器） */
+export function downloadJson(data: unknown, filename: string): void {
   const jsonStr = JSON.stringify(data);
-  const file = new File([jsonStr], filename, { type: 'application/json' });
-
-  // 优先使用系统分享面板（手机浏览器原生支持，不会闪退）
-  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({
-        files: [file],
-        title: '字卡数据备份',
-      });
-      return;
-    } catch {
-      // 用户取消分享，不需要 fallback
-      return;
-    }
+  // 使用 base64 data URI 下载，避免 Blob URL 或 File API 在旧手机上闪退
+  const bytes = new TextEncoder().encode(jsonStr);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
   }
-
-  // 回退：传统下载方式（桌面浏览器）
-  const blob = new Blob([jsonStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
+  const base64 = btoa(binary);
   const a = document.createElement('a');
-  a.href = url;
+  a.href = 'data:application/json;base64,' + base64;
   a.download = filename;
+  a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(() => document.body.removeChild(a), 1000);
 }
