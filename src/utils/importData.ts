@@ -43,6 +43,7 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
     if (value === undefined) continue;
 
     switch (key) {
+      case 'stickers':
       case 'cards': {
         if (!Array.isArray(value)) continue;
         const existing = await db.cards.toArray();
@@ -300,7 +301,8 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
 
 function getModuleLabel(key: string): string {
   const map: Record<string, string> = {
-    cards: '字卡库',
+    stickers: '表情包',
+    cards: '字卡库（旧）',
     soundTracks: '白噪音音乐库',
     periodMessages: '生理期安慰语句',
     chatSettings: '聊天设置',

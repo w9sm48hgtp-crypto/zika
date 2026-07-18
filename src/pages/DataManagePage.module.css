@@ -38,6 +38,49 @@
   -webkit-overflow-scrolling: touch;
 }
 
+/* 分区内小标题 */
+.subTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+
+/* 分区内分割线 */
+.sectionDivider {
+  height: 1px;
+  background: var(--color-divider);
+  margin: 16px 0;
+}
+
+/* 数据类型下拉菜单 */
+.typeSelect {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  appearance: auto;
+  -webkit-appearance: auto;
+  box-sizing: border-box;
+  margin-bottom: 4px;
+}
+
+.typeSelect:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+/* JSON 导入按钮行 */
+.jsonImportActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 /* 存储说明 */
 .infoCard {
   background: var(--color-accent-soft);
