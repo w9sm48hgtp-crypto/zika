@@ -191,19 +191,20 @@ export function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/** 触发浏览器导出（系统分享文本 → 系统分享文件 → 模拟下载 → 提示用浏览器打开） */
-export async function downloadJson(data: unknown, filename: string): Promise<void> {
+/** 触发浏览器导出（系统分享文本 → 系统分享文件 → 返回 JSON 文本供页面展示）
+ *  返回 { success: true } 表示分享成功
+ *  返回 { success: false, jsonStr } 表示分享失败，调用方应展示 JSON 文本让用户手动复制 */
+export async function downloadJson(data: unknown, filename: string): Promise<{ success: boolean; jsonStr: string }> {
   const jsonStr = JSON.stringify(data);
 
   // 方案1：系统分享面板 — 纯文本
   if (navigator.share) {
     try {
       await navigator.share({ text: jsonStr, title: '字卡数据备份' });
-      return;
+      return { success: true, jsonStr };
     } catch (err: any) {
       if (err?.name === 'AbortError') {
-        alert('已取消导出。');
-        return;
+        return { success: true, jsonStr }; // 用户取消不算失败
       }
       // 非取消错误 → 可能是文本太大，尝试方案2
     }
@@ -216,39 +217,16 @@ export async function downloadJson(data: unknown, filename: string): Promise<voi
       const file = new File([blob], filename, { type: 'application/json' });
       if (navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], title: '字卡数据备份' });
-        return;
+        return { success: true, jsonStr };
       }
     } catch (err: any) {
       if (err?.name === 'AbortError') {
-        alert('已取消导出。');
-        return;
+        return { success: true, jsonStr };
       }
-      // 失败 → 继续
+      // 失败 → 返回 JSON 文本供页面展示
     }
   }
 
-  // 方案3：模拟下载（创建临时链接触发下载，适用于不支持分享 API 的 WebView）
-  try {
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    // 延迟释放 URL，确保下载已触发
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    return;
-  } catch {
-    // 模拟下载也失败 → 走最后的提示
-  }
-
-  // 方案4：全部失败，提示用系统浏览器打开本页面再导出
-  alert(
-    '导出失败：当前应用环境不支持导出功能。\n\n' +
-    '请在系统浏览器（如华为浏览器或Chrome）中打开本页面，\n' +
-    '再从数据管理页面导出，即可正常下载 JSON 文件。'
-  );
+  // 分享不可用或失败 → 返回 JSON 文本让页面展示
+  return { success: false, jsonStr };
 }

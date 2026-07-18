@@ -25,12 +25,20 @@ function DataManagePage() {
   const [moduleSizes, setModuleSizes] = useState<Record<string, number>>({});
   const [exporting, setExporting] = useState(false);
 
+  // JSON 导出弹窗（当系统分享不可用时展示 JSON 文本）
+  const [exportJsonText, setExportJsonText] = useState<string | null>(null);
+  const exportJsonPreRef = useRef<HTMLPreElement>(null);
+
   // 导入状态
   const [importPreview, setImportPreview] = useState<ImportPreview[] | null>(null);
   const [importData, setImportData] = useState<unknown>(null);
   const [importSelected, setImportSelected] = useState<Set<string>>(new Set());
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // 粘贴 JSON 导入
+  const [importJsonText, setImportJsonText] = useState('');
+  const [importJsonMsg, setImportJsonMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // 清理聊天记录状态
   const [cleanupDays, setCleanupDays] = useState<number | null>(null); // 选中的天数，null=未选
@@ -249,7 +257,11 @@ function DataManagePage() {
       const data = await exportModules(Array.from(exportSelected));
       const now = new Date();
       const filename = `zika-backup-${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}.json`;
-      await downloadJson(data, filename);
+      const result = await downloadJson(data, filename);
+      if (!result.success) {
+        // 分享不可用 → 展示 JSON 文本让用户手动复制
+        setExportJsonText(result.jsonStr);
+      }
     } catch (err) {
       console.error('Export failed:', err);
       alert('导出失败：数据过大或环境不支持。\n\n建议减少选中模块，或将字卡库、白噪音改用文字导出。');
@@ -316,6 +328,32 @@ function DataManagePage() {
     if (fileRef.current) fileRef.current.value = '';
   };
 
+  // 全选 JSON 导出文本
+  const handleSelectAllExportJson = useCallback(() => {
+    if (!exportJsonPreRef.current) return;
+    const range = document.createRange();
+    range.selectNodeContents(exportJsonPreRef.current);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  }, []);
+
+  // 粘贴 JSON 导入
+  const handleImportJsonText = useCallback(async () => {
+    if (!importJsonText.trim()) return;
+    setImportJsonMsg(null);
+    const result = parseImportData(importJsonText);
+    if (!result) {
+      setImportJsonMsg({ type: 'error', text: 'JSON 格式不正确，无法解析' });
+      return;
+    }
+    setImportData(result.data);
+    setImportPreview(result.preview);
+    setImportSelected(new Set(result.preview.map(p => p.key)));
+    setImportJsonText('');
+    setImportJsonMsg({ type: 'success', text: `已解析，${result.preview.length} 个模块可导入，请在下方勾选并确认导入` });
+  }, [importJsonText]);
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -368,18 +406,69 @@ function DataManagePage() {
           </button>
         </div>
 
+        {/* JSON 导出弹窗 — 分享 API 不可用时展示 */}
+        {exportJsonText != null && (
+          <div className={styles.modalOverlay} onClick={() => setExportJsonText(null)}>
+            <div className={styles.modalCard} onClick={e => e.stopPropagation()}>
+              <p className={styles.sectionHint} style={{ marginBottom: '8px' }}>
+                全选复制以下 JSON 内容，粘贴到备忘录或文件中保存
+              </p>
+              <pre ref={exportJsonPreRef} className={styles.textExportPre} style={{ maxHeight: '50vh' }}>
+                {exportJsonText}
+              </pre>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                <button className={styles.primaryBtn} style={{ flex: 1 }} onClick={handleSelectAllExportJson}>
+                  全选
+                </button>
+                <button className={styles.cancelBtn} onClick={() => setExportJsonText(null)}>
+                  关闭
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 导入区 */}
         <div className="card">
           <h3 className={styles.sectionTitle}>导入数据</h3>
           <p className={styles.sectionHint}>选择之前导出的 JSON 备份文件，合并导入数据（不会覆盖已有内容）</p>
 
           {!importPreview ? (
-            <button
-              className={styles.outlineBtn}
-              onClick={() => fileRef.current?.click()}
-            >
-              选择备份文件
-            </button>
+            <>
+              <button
+                className={styles.outlineBtn}
+                onClick={() => fileRef.current?.click()}
+              >
+                选择备份文件
+              </button>
+
+              {/* 粘贴 JSON 导入 */}
+              <div style={{ marginTop: '12px' }}>
+                <p className={styles.sectionHint} style={{ marginBottom: '6px' }}>
+                  或粘贴 JSON 备份内容直接导入
+                </p>
+                <textarea
+                  className={styles.textImportArea}
+                  value={importJsonText}
+                  onChange={e => { setImportJsonText(e.target.value); setImportJsonMsg(null); }}
+                  placeholder="将之前导出的 JSON 全文粘贴到这里..."
+                  rows={5}
+                />
+                <button
+                  className={styles.primaryBtn}
+                  style={{ marginTop: '8px' }}
+                  onClick={handleImportJsonText}
+                  disabled={!importJsonText.trim()}
+                >
+                  解析粘贴内容
+                </button>
+                {importJsonMsg && (
+                  <p className={`${styles.importMsg} ${importJsonMsg.type === 'success' ? styles.msgSuccess : styles.msgError}`}>
+                    {importJsonMsg.text}
+                  </p>
+                )}
+              </div>
+            </>
           ) : (
             <div className={styles.importPreviewArea}>
               <p className={styles.sectionHint}>
