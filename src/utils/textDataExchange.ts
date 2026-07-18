@@ -170,7 +170,7 @@ export async function exportCompanionRecords(): Promise<string> {
   }).join('\n');
 }
 
-/** 每日记录 → [日期] 纸条：xxx；xxx | 他说：xxx | 标签：xxx, xxx */
+/** 每日记录 → [日期] 纸条：xxx；xxx | 他说：xxx | 我的标签：xxx, xxx | 他的标签：xxx */
 export async function exportDailyRecords(): Promise<string> {
   const records = await db.dailyRecords.orderBy('date').toArray();
   return records.map(r => {
@@ -182,7 +182,10 @@ export async function exportDailyRecords(): Promise<string> {
       parts.push(`他说：${r.partnerNote}`);
     }
     if (r.userMoodTags && r.userMoodTags.length > 0) {
-      parts.push(`标签：${r.userMoodTags.join(', ')}`);
+      parts.push(`我的标签：${r.userMoodTags.join(', ')}`);
+    }
+    if (r.partnerMoodTag) {
+      parts.push(`他的标签：${r.partnerMoodTag}`);
     }
     return parts.join(' | ');
   }).join('\n');
@@ -492,7 +495,7 @@ export async function importCompanionRecords(text: string): Promise<ExchangeResu
   return { count, skipped: lines.length - count };
 }
 
-/** 每日记录 — [日期] 纸条：xxx；xxx | 他说：xxx | 标签：xxx, xxx，按日期去重 */
+/** 每日记录 — [日期] 纸条：xxx；xxx | 他说：xxx | 我的标签：xxx, xxx | 他的标签：xxx，按日期去重 */
 export async function importDailyRecords(text: string): Promise<ExchangeResult> {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l);
   const existing = await db.dailyRecords.toArray();
@@ -508,18 +511,24 @@ export async function importDailyRecords(text: string): Promise<ExchangeResult> 
     let userNotes: string[] = [];
     let partnerNote: string | undefined;
     let userMoodTags: string[] = [];
+    let partnerMoodTag: string | undefined;
     for (const part of parts) {
       if (part.startsWith('纸条：')) {
         userNotes = part.slice(3).split('；').map(s => s.trim()).filter(s => s);
       } else if (part.startsWith('他说：')) {
         partnerNote = part.slice(3).trim() || undefined;
+      } else if (part.startsWith('我的标签：')) {
+        userMoodTags = part.slice(5).split(',').map(s => s.trim()).filter(s => s);
+      } else if (part.startsWith('他的标签：')) {
+        partnerMoodTag = part.slice(5).trim() || undefined;
       } else if (part.startsWith('标签：')) {
+        // 兼容旧格式（只有我的标签，旧名叫"标签"）
         userMoodTags = part.slice(3).split(',').map(s => s.trim()).filter(s => s);
       }
     }
     if (!date || /^\d{4}-\d{2}-\d{2}$/.test(date) === false) continue;
     if (existingDates.has(date)) continue;
-    await db.dailyRecords.add({ date, userNotes, partnerNote, userMoodTags });
+    await db.dailyRecords.add({ date, userNotes, partnerNote, userMoodTags, partnerMoodTag });
     existingDates.add(date);
     count++;
   }
