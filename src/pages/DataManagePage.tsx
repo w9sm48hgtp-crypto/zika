@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EXPORT_MODULES, exportModules, downloadJson, estimateModuleSizes, formatSize } from '../utils/exportData';
 import { parseImportData, importModules } from '../utils/importData';
-import { db } from '../db';
+import { db, type Card } from '../db';
 import type { ImportPreview } from '../utils/importData';
 import styles from './DataManagePage.module.css';
 
@@ -37,6 +37,47 @@ function DataManagePage() {
   const [cleanupCounting, setCleanupCounting] = useState(false);
   const [cleanupDeleting, setCleanupDeleting] = useState(false);
   const [cleanupDone, setCleanupDone] = useState(false);
+
+  // 字卡文本导出/导入
+  const [cardTextExport, setCardTextExport] = useState<string | null>(null);
+  const [cardTextImport, setCardTextImport] = useState('');
+  const [cardImportMsg, setCardImportMsg] = useState<string | null>(null);
+
+  // 导出字卡为换行文本
+  const handleCardTextExport = useCallback(async () => {
+    const cards = await db.cards.toArray();
+    const lines = cards.map((c: Card) => {
+      if (c.type === 'nudge') return `[拍一拍] ${c.content}`;
+      if (c.type === 'sticker') return `[表情包] （图片无法导出）`;
+      return c.content;
+    });
+    setCardTextExport(lines.join('\n'));
+  }, []);
+
+  // 导入换行文本为字卡
+  const handleCardTextImport = useCallback(async () => {
+    if (!cardTextImport.trim()) return;
+    const lines = cardTextImport.split('\n').map(l => l.trim()).filter(l => l);
+    let count = 0;
+    for (const line of lines) {
+      let type: Card['type'] = 'text';
+      let content = line;
+      if (line.startsWith('[拍一拍] ')) {
+        type = 'nudge';
+        content = line.slice(6);
+      }
+      if (!content) continue;
+      // 检查重复
+      const exists = await db.cards.where({ type, content }).first();
+      if (!exists) {
+        await db.cards.add({ type, content, category: '', createdAt: Date.now(), updatedAt: Date.now() });
+        count++;
+      }
+    }
+    setCardImportMsg(`已导入 ${count} 条字卡（跳过 ${lines.length - count} 条重复）`);
+    setCardTextImport('');
+    estimateModuleSizes().then(setModuleSizes);
+  }, [cardTextImport]);
 
   // 点击清理按钮：先统计
   const handleCleanupCheck = useCallback(async (days: number) => {
@@ -280,6 +321,59 @@ function DataManagePage() {
             style={{ display: 'none' }}
             onChange={handleFileSelect}
           />
+        </div>
+
+        {/* 字卡文本导出/导入 */}
+        <div className="card" style={{ marginTop: '12px' }}>
+          <h3 className={styles.sectionTitle}>字卡文本导出 / 导入</h3>
+          <p className={styles.sectionHint}>纯文字和拍一拍可导出为换行文本，手动保存后可用文本框导入回来</p>
+
+          {/* 导出 */}
+          <button
+            className={styles.outlineBtn}
+            style={{ marginBottom: cardTextExport != null ? '8px' : '12px' }}
+            onClick={handleCardTextExport}
+          >
+            导出字卡文本
+          </button>
+
+          {cardTextExport != null && (
+            <div style={{ marginBottom: '12px' }}>
+              <pre className={styles.textExportPre}>
+                {cardTextExport || '（暂无字卡）'}
+              </pre>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                <button
+                  className={styles.cancelBtn}
+                  onClick={() => setCardTextExport(null)}
+                >
+                  收起
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 导入 */}
+          <textarea
+            className={styles.textImportArea}
+            value={cardTextImport}
+            onChange={e => { setCardTextImport(e.target.value); setCardImportMsg(null); }}
+            placeholder="在此粘贴字卡文本，每行一条&#10;拍一拍请加 [拍一拍] 前缀"
+            rows={4}
+          />
+          <button
+            className={styles.primaryBtn}
+            style={{ marginTop: '8px' }}
+            onClick={handleCardTextImport}
+            disabled={!cardTextImport.trim()}
+          >
+            导入文本为字卡
+          </button>
+          {cardImportMsg && (
+            <p className={`${styles.importMsg} ${cardImportMsg.includes('失败') ? styles.msgError : styles.msgSuccess}`}>
+              {cardImportMsg}
+            </p>
+          )}
         </div>
 
         {/* 清理聊天记录 */}
