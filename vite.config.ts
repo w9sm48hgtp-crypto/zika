@@ -8,10 +8,15 @@ export default defineConfig({
   base: '/zika/',
   server: {
     host: '0.0.0.0', // 允许手机通过局域网访问
-    https: {
-      key: fs.readFileSync(path.resolve(__dirname, 'certs/key.pem')),
-      cert: fs.readFileSync(path.resolve(__dirname, 'certs/cert.pem')),
-    },
+    // 如果本地有证书文件就启用 HTTPS（证书不提交 git，CI 上自动退回 HTTP）
+    ...(fs.existsSync(path.resolve(__dirname, 'certs/key.pem'))
+      ? {
+          https: {
+            key: fs.readFileSync(path.resolve(__dirname, 'certs/key.pem')),
+            cert: fs.readFileSync(path.resolve(__dirname, 'certs/cert.pem')),
+          },
+        }
+      : {}),
   },
   plugins: [
     react(),
