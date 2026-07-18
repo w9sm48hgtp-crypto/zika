@@ -4,6 +4,7 @@ import { EXPORT_MODULES, exportModules, downloadJson, estimateModuleSizes, forma
 import { parseImportData, importModules } from '../utils/importData';
 import { db, type Card } from '../db';
 import type { ImportPreview } from '../utils/importData';
+import { DATA_TYPE_META, exportTextData, importTextData, type DataType } from '../utils/textDataExchange';
 import styles from './DataManagePage.module.css';
 
 /** 清理聊天记录的天数选项 */
@@ -43,6 +44,12 @@ function DataManagePage() {
   const [cardTextImport, setCardTextImport] = useState('');
   const [cardImportMsg, setCardImportMsg] = useState<string | null>(null);
 
+  // 文字数据交换（6种纯文字数据）
+  const [exchangeType, setExchangeType] = useState<DataType>('periodMessages');
+  const [exchangeExport, setExchangeExport] = useState<string | null>(null);
+  const [exchangeImport, setExchangeImport] = useState('');
+  const [exchangeMsg, setExchangeMsg] = useState<string | null>(null);
+
   // 导出字卡为换行文本（按分类分组，不含表情包）
   const handleCardTextExport = useCallback(async () => {
     const cards = await db.cards.toArray();
@@ -79,16 +86,16 @@ function DataManagePage() {
     setCardTextExport(lines.join('\n'));
   }, []);
 
-  // 一键复制导出文本
-  const handleCopyExport = useCallback(async () => {
-    if (!cardTextExport) return;
-    try {
-      await navigator.clipboard.writeText(cardTextExport);
-      alert('已复制到剪贴板');
-    } catch {
-      alert('复制失败，请手动全选复制');
-    }
-  }, [cardTextExport]);
+  // 全选导出文本（不复制，用户自行长按复制）
+  const cardPreRef = useRef<HTMLPreElement>(null);
+  const handleSelectAllCard = useCallback(() => {
+    if (!cardPreRef.current) return;
+    const range = document.createRange();
+    range.selectNodeContents(cardPreRef.current);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  }, []);
 
   // 导入换行文本为字卡（支持【分类名】标题行）
   const handleCardTextImport = useCallback(async () => {
@@ -130,6 +137,33 @@ function DataManagePage() {
     setCardTextImport('');
     estimateModuleSizes().then(setModuleSizes);
   }, [cardTextImport]);
+
+  // 文字数据交换：导出
+  const handleExchangeExport = useCallback(async (type: DataType) => {
+    const text = await exportTextData(type);
+    setExchangeExport(text);
+    setExchangeMsg(null);
+  }, []);
+
+  // 全选导出文本（不复制，用户自行长按复制）
+  const exchangePreRef = useRef<HTMLPreElement>(null);
+  const handleSelectAllExchange = useCallback(() => {
+    if (!exchangePreRef.current) return;
+    const range = document.createRange();
+    range.selectNodeContents(exchangePreRef.current);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  }, []);
+
+  // 文字数据交换：导入
+  const handleExchangeImport = useCallback(async () => {
+    if (!exchangeImport.trim()) return;
+    const result = await importTextData(exchangeType, exchangeImport);
+    setExchangeMsg(`已导入 ${result.count} 条（跳过 ${result.skipped} 条重复）`);
+    setExchangeImport('');
+    estimateModuleSizes().then(setModuleSizes);
+  }, [exchangeType, exchangeImport]);
 
   // 点击清理按钮：先统计
   const handleCleanupCheck = useCallback(async (days: number) => {
@@ -378,7 +412,7 @@ function DataManagePage() {
         {/* 字卡文本导出/导入 */}
         <div className="card" style={{ marginTop: '12px' }}>
           <h3 className={styles.sectionTitle}>字卡文本导出 / 导入</h3>
-          <p className={styles.sectionHint}>按分类导出文字和拍一拍，可一键复制保存；导入时支持【分类名】标题行自动归类</p>
+          <p className={styles.sectionHint}>按分类导出文字和拍一拍，全选后可手动复制；导入时支持【分类名】标题行自动归类</p>
 
           {/* 导出 */}
           <button
@@ -391,16 +425,16 @@ function DataManagePage() {
 
           {cardTextExport != null && (
             <div style={{ marginBottom: '12px' }}>
-              <pre className={styles.textExportPre}>
+              <pre ref={cardPreRef} className={styles.textExportPre}>
                 {cardTextExport || '（暂无字卡）'}
               </pre>
               <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
                 <button
                   className={styles.primaryBtn}
                   style={{ flex: 1 }}
-                  onClick={handleCopyExport}
+                  onClick={handleSelectAllCard}
                 >
-                  一键复制
+                  全选
                 </button>
                 <button
                   className={styles.cancelBtn}
@@ -431,6 +465,87 @@ function DataManagePage() {
           {cardImportMsg && (
             <p className={`${styles.importMsg} ${cardImportMsg.includes('失败') ? styles.msgError : styles.msgSuccess}`}>
               {cardImportMsg}
+            </p>
+          )}
+        </div>
+
+        {/* 文字数据交换（6种纯文字数据） */}
+        <div className="card" style={{ marginTop: '12px' }}>
+          <h3 className={styles.sectionTitle}>文字数据导出 / 导入</h3>
+          <p className={styles.sectionHint}>选择数据类型，导出为可读文本保存到备忘录；支持相同格式导入回来</p>
+
+          {/* 类型选择 */}
+          <div className={styles.cleanupButtons} style={{ marginBottom: '10px' }}>
+            {(Object.entries(DATA_TYPE_META) as [DataType, typeof DATA_TYPE_META[DataType]][]).map(([key, meta]) => (
+              <button
+                key={key}
+                className={styles.cleanupBtn}
+                style={exchangeType === key ? { background: 'var(--color-accent-soft)', borderColor: 'var(--color-accent)', color: 'var(--color-accent)' } : undefined}
+                onClick={() => { setExchangeType(key); setExchangeExport(null); setExchangeImport(''); setExchangeMsg(null); }}
+              >
+                {meta.label}
+              </button>
+            ))}
+          </div>
+
+          <p className={styles.sectionHint}>{DATA_TYPE_META[exchangeType].desc}</p>
+
+          {/* 导出 */}
+          <button
+            className={styles.outlineBtn}
+            style={{ marginBottom: exchangeExport != null ? '8px' : '12px' }}
+            onClick={() => handleExchangeExport(exchangeType)}
+          >
+            导出{DATA_TYPE_META[exchangeType].label}
+          </button>
+
+          {exchangeExport != null && (
+            <div style={{ marginBottom: '12px' }}>
+              <pre ref={exchangePreRef} className={styles.textExportPre}>
+                {exchangeExport || '（暂无数据）'}
+              </pre>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                <button
+                  className={styles.primaryBtn}
+                  style={{ flex: 1 }}
+                  onClick={handleSelectAllExchange}
+                >
+                  全选
+                </button>
+                <button
+                  className={styles.cancelBtn}
+                  onClick={() => setExchangeExport(null)}
+                >
+                  收起
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 导入 */}
+          <textarea
+            className={styles.textImportArea}
+            value={exchangeImport}
+            onChange={e => { setExchangeImport(e.target.value); setExchangeMsg(null); }}
+            placeholder={exchangeType === 'periodMessages' ? '每行一条安慰语句，如：\n多喝热水呀\n别难过，有我在' :
+              exchangeType === 'stickyNotes' ? '每行一条便签，如：\n今天记得买水果\n明天要开会' :
+              exchangeType === 'anniversaries' ? '每行一条，格式：名称 | 日期 | 类型\n如：第一次见面 | 2024-01-15 | 正数日\n类型：正数日 / 倒数日 / 每年同日' :
+              exchangeType === 'moodTags' ? '每行一条，格式：[分类] 标签名\n如：[我的] 开心\n分类：我的 / 他的 / 通用' :
+              exchangeType === 'todoItems' ? '每行一条，格式：【分类名】待办\n完成的加 ✓，如：\n【学习】背单词\n【生活】买菜 ✓' :
+              '每行一条，格式：[场景-开始/结束] 语句\n如：[学习-开始] 一起加油吧\n场景：学习 / 吃饭 / 睡眠 / 其他'}
+            rows={4}
+          />
+          <button
+            className={styles.primaryBtn}
+            style={{ marginTop: '8px' }}
+            onClick={handleExchangeImport}
+            disabled={!exchangeImport.trim()}
+          >
+            导入为{DATA_TYPE_META[exchangeType].label}
+          </button>
+          {exchangeMsg && (
+            <p className={`${styles.importMsg} ${exchangeMsg.includes('失败') ? styles.msgError : styles.msgSuccess}`}>
+              {exchangeMsg}
             </p>
           )}
         </div>
