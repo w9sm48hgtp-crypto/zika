@@ -43,23 +43,72 @@ function DataManagePage() {
   const [cardTextImport, setCardTextImport] = useState('');
   const [cardImportMsg, setCardImportMsg] = useState<string | null>(null);
 
-  // 导出字卡为换行文本
+  // 导出字卡为换行文本（按分类分组，不含表情包）
   const handleCardTextExport = useCallback(async () => {
     const cards = await db.cards.toArray();
-    const lines = cards.map((c: Card) => {
-      if (c.type === 'nudge') return `[拍一拍] ${c.content}`;
-      if (c.type === 'sticker') return `[表情包] （图片无法导出）`;
-      return c.content;
-    });
+    // 过滤掉表情包
+    const textCards = cards.filter(c => c.type !== 'sticker');
+
+    // 按分类分组
+    const grouped: Record<string, Card[]> = {};
+    const uncategorized: Card[] = [];
+    for (const c of textCards) {
+      if (c.category) {
+        if (!grouped[c.category]) grouped[c.category] = [];
+        grouped[c.category].push(c);
+      } else {
+        uncategorized.push(c);
+      }
+    }
+
+    const lines: string[] = [];
+    for (const [cat, catCards] of Object.entries(grouped)) {
+      lines.push(`【${cat}】`);
+      for (const c of catCards) {
+        lines.push(c.type === 'nudge' ? `[拍一拍] ${c.content}` : c.content);
+      }
+      lines.push(''); // 空行分隔
+    }
+    if (uncategorized.length > 0) {
+      lines.push('【未分类】');
+      for (const c of uncategorized) {
+        lines.push(c.type === 'nudge' ? `[拍一拍] ${c.content}` : c.content);
+      }
+    }
+
     setCardTextExport(lines.join('\n'));
   }, []);
 
-  // 导入换行文本为字卡
+  // 一键复制导出文本
+  const handleCopyExport = useCallback(async () => {
+    if (!cardTextExport) return;
+    try {
+      await navigator.clipboard.writeText(cardTextExport);
+      alert('已复制到剪贴板');
+    } catch {
+      alert('复制失败，请手动全选复制');
+    }
+  }, [cardTextExport]);
+
+  // 导入换行文本为字卡（支持【分类名】标题行）
   const handleCardTextImport = useCallback(async () => {
     if (!cardTextImport.trim()) return;
-    const lines = cardTextImport.split('\n').map(l => l.trim()).filter(l => l);
+    const rawLines = cardTextImport.split('\n');
     let count = 0;
-    for (const line of lines) {
+    let skipped = 0;
+    let currentCategory = '';
+
+    for (const raw of rawLines) {
+      const line = raw.trim();
+      if (!line) continue;
+
+      // 检测分类标题行：【xxx】
+      const catMatch = line.match(/^【(.+)】$/);
+      if (catMatch) {
+        currentCategory = catMatch[1] === '未分类' ? '' : catMatch[1];
+        continue;
+      }
+
       let type: Card['type'] = 'text';
       let content = line;
       if (line.startsWith('[拍一拍] ')) {
@@ -67,14 +116,17 @@ function DataManagePage() {
         content = line.slice(6);
       }
       if (!content) continue;
-      // 检查重复
+
+      // 查重
       const exists = await db.cards.where({ type, content }).first();
       if (!exists) {
-        await db.cards.add({ type, content, category: '', createdAt: Date.now(), updatedAt: Date.now() });
+        await db.cards.add({ type, content, category: currentCategory, createdAt: Date.now(), updatedAt: Date.now() });
         count++;
+      } else {
+        skipped++;
       }
     }
-    setCardImportMsg(`已导入 ${count} 条字卡（跳过 ${lines.length - count} 条重复）`);
+    setCardImportMsg(`已导入 ${count} 条字卡（跳过 ${skipped} 条重复）`);
     setCardTextImport('');
     estimateModuleSizes().then(setModuleSizes);
   }, [cardTextImport]);
@@ -326,7 +378,7 @@ function DataManagePage() {
         {/* 字卡文本导出/导入 */}
         <div className="card" style={{ marginTop: '12px' }}>
           <h3 className={styles.sectionTitle}>字卡文本导出 / 导入</h3>
-          <p className={styles.sectionHint}>纯文字和拍一拍可导出为换行文本，手动保存后可用文本框导入回来</p>
+          <p className={styles.sectionHint}>按分类导出文字和拍一拍，可一键复制保存；导入时支持【分类名】标题行自动归类</p>
 
           {/* 导出 */}
           <button
@@ -344,6 +396,13 @@ function DataManagePage() {
               </pre>
               <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
                 <button
+                  className={styles.primaryBtn}
+                  style={{ flex: 1 }}
+                  onClick={handleCopyExport}
+                >
+                  一键复制
+                </button>
+                <button
                   className={styles.cancelBtn}
                   onClick={() => setCardTextExport(null)}
                 >
@@ -358,7 +417,7 @@ function DataManagePage() {
             className={styles.textImportArea}
             value={cardTextImport}
             onChange={e => { setCardTextImport(e.target.value); setCardImportMsg(null); }}
-            placeholder="在此粘贴字卡文本，每行一条&#10;拍一拍请加 [拍一拍] 前缀"
+            placeholder="在此粘贴字卡文本，每行一条&#10;拍一拍请加 [拍一拍] 前缀&#10;支持【分类名】标题行自动归类"
             rows={4}
           />
           <button
