@@ -223,6 +223,27 @@ function DataManagePage() {
 
   const handleExport = async () => {
     if (exportSelected.size === 0) return;
+
+    // 检查总大小，超过 10MB 提示用户去掉图片/音频模块
+    const sizes = await estimateModuleSizes();
+    let totalSize = 0;
+    for (const key of exportSelected) {
+      totalSize += sizes[key] || 0;
+    }
+    const SIZE_LIMIT = 10 * 1024 * 1024; // 10MB
+    if (totalSize > SIZE_LIMIT) {
+      const sizeStr = formatSize(totalSize);
+      const hasCards = exportSelected.has('cards');
+      const hasSoundTracks = exportSelected.has('soundTracks');
+      let tip = `导出数据约 ${sizeStr}，可能超出当前环境内存限制导致闪退。\n\n`;
+      if (hasCards || hasSoundTracks) {
+        tip += '建议先取消勾选"字卡库"和"白噪音音乐库"（它们包含图片和音频，体积较大），\n';
+        tip += '这两个模块可单独用文字导出功能备份。\n\n';
+      }
+      tip += '确定要继续导出吗？';
+      if (!confirm(tip)) return;
+    }
+
     setExporting(true);
     try {
       const data = await exportModules(Array.from(exportSelected));
@@ -231,6 +252,7 @@ function DataManagePage() {
       await downloadJson(data, filename);
     } catch (err) {
       console.error('Export failed:', err);
+      alert('导出失败：数据过大或环境不支持。\n\n建议减少选中模块，或将字卡库、白噪音改用文字导出。');
     } finally {
       setExporting(false);
     }
