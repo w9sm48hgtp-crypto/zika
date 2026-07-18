@@ -57,16 +57,23 @@ export async function exportMoodTags(): Promise<string> {
   return tags.map(t => `[${catMap[t.category] || t.category}] ${t.name}`).join('\n');
 }
 
-/** Todo 待办 → 【分类名】待办文字（已完成的加 ✓） */
+/** Todo 待办 → 总完成：N + 【分类名】待办文字（已完成的加 ✓） */
 export async function exportTodoItems(): Promise<string> {
+  const statsRow = await db.settings.get('todoStats');
+  const stats = (statsRow?.value as { totalCount?: number } | undefined) || {};
+  const totalCount = stats.totalCount || 0;
+
   const categories = await db.todoCategories.toArray();
   const catMap = new Map(categories.map(c => [c.id!, c.name]));
   const items = await db.todoItems.orderBy('sortOrder').toArray();
-  return items.map(i => {
+
+  const lines = [`总完成：${totalCount}`];
+  for (const i of items) {
     const catName = catMap.get(i.categoryId) || '默认';
     const check = i.completed ? '✓ ' : '';
-    return `【${catName}】${check}${i.text}`;
-  }).join('\n');
+    lines.push(`【${catName}】${check}${i.text}`);
+  }
+  return lines.join('\n');
 }
 
 /** 陪伴鼓励语句 → [场景-开始/结束] 语句 */
@@ -173,13 +180,29 @@ export async function importMoodTags(text: string): Promise<ExchangeResult> {
   return { count, skipped: lines.length - count };
 }
 
-/** Todo 待办 — 【分类名】待办（✓ 已完成），去重 */
+/** Todo 待办 — 总完成：N + 【分类名】待办（✓ 已完成），去重 */
 export async function importTodoItems(text: string): Promise<ExchangeResult> {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l);
   const categories = await db.todoCategories.toArray();
   const existingItems = await db.todoItems.toArray();
   let count = 0;
+  let hasTotalLine = false;
+
   for (const line of lines) {
+    // 总完成数标题行
+    const totalMatch = line.match(/^总完成：(\d+)$/);
+    if (totalMatch) {
+      hasTotalLine = true;
+      const importedTotal = parseInt(totalMatch[1], 10);
+      if (!isNaN(importedTotal)) {
+        const statsRow = await db.settings.get('todoStats');
+        const existing = (statsRow?.value as { totalCount: number } | undefined) || { totalCount: 0 };
+        const merged = Math.max(existing.totalCount, importedTotal);
+        await db.settings.put({ key: 'todoStats', value: { ...existing, totalCount: merged } });
+      }
+      continue;
+    }
+
     const match = line.match(/^【(.+?)】(✓?\s*)(.+)$/);
     if (!match) continue;
     const catName = match[1].trim();
@@ -207,7 +230,7 @@ export async function importTodoItems(text: string): Promise<ExchangeResult> {
     existingItems.push({ categoryId: cat.id!, text: itemText, completed, sortOrder, createdAt: Date.now() });
     count++;
   }
-  return { count, skipped: lines.length - count };
+  return { count, skipped: lines.length - count - (hasTotalLine ? 1 : 0) };
 }
 
 /** 陪伴鼓励语句 — [场景-开始/结束] 语句 */

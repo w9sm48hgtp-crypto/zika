@@ -85,22 +85,30 @@ export function CardManager() {
     loadCards();
   };
 
-  // 表情包上传
+  // 表情包上传（支持多选）
+  const [stickerUploading, setStickerUploading] = useState(false);
   const handleStickerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async () => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setStickerUploading(true);
+    // 逐个读取并保存
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const dataUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
       await db.cards.add({
         type: 'sticker',
-        content: reader.result as string,
+        content: dataUrl,
         category: stickerUploadCategory,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
-      loadCards();
-    };
-    reader.readAsDataURL(file);
+    }
+    setStickerUploading(false);
+    loadCards();
     if (e.target) e.target.value = '';
   };
 
@@ -275,8 +283,8 @@ export function CardManager() {
                   {STICKER_CATEGORIES.map(cat => <option key={cat.key} value={cat.key}>{cat.label}</option>)}
                 </select>
                 <label className={styles.uploadBtn}>
-                  [图片] 选择图片上传
-                  <input type="file" accept="image/*" onChange={handleStickerUpload} style={{ display: 'none' }} />
+                  [图片] {stickerUploading ? '上传中...' : '选择图片上传（可多选）'}
+                  <input type="file" accept="image/*" multiple onChange={handleStickerUpload} style={{ display: 'none' }} />
                 </label>
               </div>
               <p className={styles.hint}>
