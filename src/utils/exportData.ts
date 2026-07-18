@@ -191,7 +191,7 @@ export function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/** 触发浏览器导出（系统分享文本 → 系统分享文件 → 提示用浏览器打开） */
+/** 触发浏览器导出（系统分享文本 → 系统分享文件 → 模拟下载 → 提示用浏览器打开） */
 export async function downloadJson(data: unknown, filename: string): Promise<void> {
   const jsonStr = JSON.stringify(data);
 
@@ -227,7 +227,25 @@ export async function downloadJson(data: unknown, filename: string): Promise<voi
     }
   }
 
-  // 方案3：导出失败，提示用系统浏览器打开本页面再导出
+  // 方案3：模拟下载（创建临时链接触发下载，适用于不支持分享 API 的 WebView）
+  try {
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    // 延迟释放 URL，确保下载已触发
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return;
+  } catch {
+    // 模拟下载也失败 → 走最后的提示
+  }
+
+  // 方案4：全部失败，提示用系统浏览器打开本页面再导出
   alert(
     '导出失败：当前应用环境不支持导出功能。\n\n' +
     '请在系统浏览器（如华为浏览器或Chrome）中打开本页面，\n' +
