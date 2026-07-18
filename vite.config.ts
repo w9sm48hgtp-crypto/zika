@@ -14,6 +14,28 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'icons/icon-192.svg', 'icons/icon-512.svg'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        skipWaiting: true,
+        clientsClaim: true,
+        // 导航请求用 NetworkFirst，每次打开 App 都先尝试拉取最新 HTML
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pages',
+              networkTimeoutSeconds: 5,
+              expiration: { maxEntries: 5 },
+            },
+          },
+          {
+            urlPattern: /\.(?:js|css)$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'assets',
+              expiration: { maxEntries: 50 },
+            },
+          },
+        ],
       },
       manifest: {
         name: '字卡 - 恋爱陪伴',
