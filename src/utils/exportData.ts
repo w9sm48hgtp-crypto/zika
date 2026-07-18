@@ -1,4 +1,5 @@
 import { db } from '../db';
+import { compressImage } from './compressImage';
 
 /** 导出数据模块定义 */
 export interface ExportModule {
@@ -30,7 +31,14 @@ export async function exportModules(moduleKeys: string[]): Promise<ExportData> {
       case 'stickers': {
         // 只导出表情包（sticker 类型），不含文字和拍一拍
         const cards = await db.cards.where('type').equals('sticker').toArray();
-        modules.stickers = cards;
+        // 压缩表情包图片：最大 200px 宽，JPEG 质量 0.5
+        const compressed = await Promise.all(
+          cards.map(async (c) => ({
+            ...c,
+            content: await compressImage(c.content, 200, 0.5),
+          }))
+        );
+        modules.stickers = compressed;
         break;
       }
       case 'soundTracks': {
@@ -52,7 +60,14 @@ export async function exportModules(moduleKeys: string[]): Promise<ExportData> {
       }
       case 'photoAlbums': {
         const albums = await db.photoAlbums.toArray();
-        const photos = await db.photos.toArray();
+        const rawPhotos = await db.photos.toArray();
+        // 压缩相册照片：最大 800px 宽，JPEG 质量 0.6
+        const photos = await Promise.all(
+          rawPhotos.map(async (p) => ({
+            ...p,
+            dataUrl: await compressImage(p.dataUrl, 800, 0.6),
+          }))
+        );
         modules.photoAlbums = { albums, photos };
         break;
       }

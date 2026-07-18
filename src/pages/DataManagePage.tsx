@@ -338,7 +338,6 @@ function DataManagePage() {
               <div className={styles.jsonImportActions}>
                 <button
                   className={styles.primaryBtn}
-                  style={{ flex: 1 }}
                   onClick={handleImportJsonText}
                   disabled={!importJsonText.trim()}
                 >
@@ -346,7 +345,6 @@ function DataManagePage() {
                 </button>
                 <button
                   className={styles.outlineBtn}
-                  style={{ flex: 'none', padding: '12px 16px', border: '1px solid var(--color-accent-light)', borderRadius: 'var(--radius-md)', color: 'var(--color-accent)', fontSize: 'var(--font-size-sm)' }}
                   onClick={() => fileRef.current?.click()}
                 >
                   选择文件

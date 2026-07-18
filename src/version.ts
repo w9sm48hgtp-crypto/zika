@@ -1,2 +1,2 @@
 // 应用版本号 — 每次发版更新此文件
-export const APP_VERSION = '1.3.0';
+export const APP_VERSION = '1.3.1';
