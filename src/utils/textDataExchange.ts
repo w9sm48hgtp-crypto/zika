@@ -228,7 +228,7 @@ export async function exportPeriodMessages(): Promise<string> {
   return list.join('\n');
 }
 
-/** 书信 → [时间] 写：xxx / 回：xxx */
+/** 书信 → [时间] 写：xxx / [时间] 回：xxx（已回信）/ [时间] 预计回信（未回信但记录预期时间） */
 export async function exportLetters(): Promise<string> {
   const letters = await db.letters.orderBy('sentAt').toArray();
   return letters.map(l => {
@@ -237,6 +237,9 @@ export async function exportLetters(): Promise<string> {
     if (l.replyContent) {
       const replyTime = l.repliedAt ? formatDateTime(l.repliedAt) : time;
       result += `\n[${replyTime}] 回：${l.replyContent}`;
+    } else if (l.repliedAt) {
+      // 还没收到回信，但记录了预计回信时间
+      result += `\n[${formatDateTime(l.repliedAt)}] 预计回信`;
     }
     return result;
   }).join('\n');
@@ -582,6 +585,23 @@ export async function importLetters(text: string): Promise<ExchangeResult> {
       currentWrite = { time, content: writeMatch[2].trim() };
       continue;
     }
+    const expectedReplyMatch = line.match(/^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\]\s+预计回信$/);
+    if (expectedReplyMatch && currentWrite) {
+      const replyTime = parseDateTime(expectedReplyMatch[1]);
+      const key = `${currentWrite.content}|`;
+      if (!existingPairs.has(key)) {
+        await db.letters.add({
+          userContent: currentWrite.content,
+          sentAt: currentWrite.time,
+          repliedAt: replyTime,
+        });
+        existingPairs.add(key);
+        count++;
+      }
+      currentWrite = null;
+      continue;
+    }
+
     const replyMatch = line.match(/^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\]\s+回：(.+)$/);
     if (replyMatch && currentWrite) {
       const replyTime = parseDateTime(replyMatch[1]);
