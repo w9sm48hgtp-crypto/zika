@@ -52,9 +52,9 @@ export default defineConfig({
         name: '字卡 - 恋爱陪伴',
         short_name: '字卡',
         description: '温暖的字卡恋爱陪伴App',
-        theme_color: '#faf0d8',
-        background_color: '#faf0d8',
         display: 'standalone',
+        theme_color: '',
+        background_color: '',
         orientation: 'portrait',
         start_url: '/zika/',
         icons: [
