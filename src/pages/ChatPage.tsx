@@ -59,6 +59,44 @@ function ChatPage() {
   const isLoadingMore = useRef(false);
   const isInitialLoad = useRef(true);
 
+  // ===== 他的状态栏 =====
+  const [partnerStatus, setPartnerStatus] = useState<string | null>(null);
+  const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const pickPartnerStatus = useCallback(async () => {
+    try {
+      const tags = await db.moodTags.toArray();
+      const hisTags = tags.filter(t => t.category === 'his' || t.category === 'both');
+      if (hisTags.length > 0) {
+        const tag = hisTags[Math.floor(Math.random() * hisTags.length)];
+        setPartnerStatus(tag.name);
+      } else {
+        setPartnerStatus(null);
+      }
+    } catch {
+      setPartnerStatus(null);
+    }
+  }, []);
+
+  const scheduleStatusUpdate = useCallback(() => {
+    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+    // 15分钟 ~ 3小时随机间隔
+    const delay = (15 + Math.random() * 165) * 60 * 1000;
+    statusTimerRef.current = setTimeout(() => {
+      pickPartnerStatus();
+      scheduleStatusUpdate();
+    }, delay);
+  }, [pickPartnerStatus]);
+
+  // 初始化状态栏 + 定时器
+  useEffect(() => {
+    pickPartnerStatus();
+    scheduleStatusUpdate();
+    return () => {
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+    };
+  }, [pickPartnerStatus, scheduleStatusUpdate]);
+
   useEffect(() => {
     if (!isLoaded.current) {
       isLoaded.current = true;
@@ -142,7 +180,15 @@ function ChatPage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <span className={styles.headerName}>{partnerName || '他'}</span>
+        <div className={styles.headerCenter}>
+          <span className={styles.headerName}>{partnerName || '他'}</span>
+          {partnerStatus && (
+            <span className={styles.headerStatus}>
+              <span className={styles.statusDot} />
+              {partnerStatus}
+            </span>
+          )}
+        </div>
       </header>
 
       <div

@@ -47,7 +47,7 @@ export async function exportModules(moduleKeys: string[]): Promise<ExportData> {
         break;
       }
       case 'chatSettings': {
-        const keys = ['userAvatar', 'partnerAvatar', 'partnerName', 'replyDelay',
+        const keys = ['userAvatar', 'partnerAvatar', 'partnerName', 'replyDelayMin', 'replyDelayMax',
           'replyCountMin', 'replyCountMax', 'textRatio', 'nudgeRatio', 'stickerRatio',
           'vibrationEnabled'];
         const settings: Record<string, unknown> = {};
@@ -92,7 +92,7 @@ export async function estimateModuleSizes(): Promise<Record<string, number>> {
   const trackCount = await db.soundTracks.count();
   sizes.soundTracks = trackCount * 500000;
 
-  const settingKeys = ['userAvatar', 'partnerAvatar', 'partnerName', 'replyDelay',
+  const settingKeys = ['userAvatar', 'partnerAvatar', 'partnerName', 'replyDelayMin', 'replyDelayMax',
     'replyCountMin', 'replyCountMax', 'textRatio', 'nudgeRatio', 'stickerRatio',
     'vibrationEnabled'];
   const settings: Record<string, unknown> = {};

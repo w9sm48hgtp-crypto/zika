@@ -5,9 +5,9 @@ import styles from './SubPage.module.css';
 function ChatSettingsPage() {
   const navigate = useNavigate();
   const {
-    replyDelay, replyCountMin, replyCountMax,
+    replyDelayMin, replyDelayMax, replyCountMin, replyCountMax,
     partnerName, userName, vibrationEnabled, soundVolume,
-    setReplyDelay, setReplyCountMin, setReplyCountMax,
+    setReplyDelayMin, setReplyDelayMax, setReplyCountMin, setReplyCountMax,
     setPartnerName, setUserName, setVibrationEnabled, setSoundVolume,
   } = useSettingsStore();
 
@@ -40,13 +40,42 @@ function ChatSettingsPage() {
             />
           </div>
 
-          <div className={styles.settingRow}>
-            <span>回复延迟（分钟）</span>
-            <div className={styles.stepper}>
-              <button onClick={() => replyDelay > 1 && setReplyDelay(replyDelay - 1)}>−</button>
-              <span className={styles.stepperVal}>{replyDelay}</span>
-              <button onClick={() => replyDelay < 60 && setReplyDelay(replyDelay + 1)}>+</button>
+          <div className={styles.settingRow} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>回复最短等待</span>
+              <span style={{ color: 'var(--color-text-hint)', fontSize: 'var(--font-size-sm)' }}>{replyDelayMin} 秒</span>
             </div>
+            <input
+              type="range"
+              min="60"
+              max="150"
+              value={replyDelayMin}
+              onChange={(e) => {
+                const v = Number(e.target.value);
+                setReplyDelayMin(v);
+                if (v > replyDelayMax) setReplyDelayMax(v);
+              }}
+              style={{ width: '100%', accentColor: 'var(--color-accent)' }}
+            />
+          </div>
+
+          <div className={styles.settingRow} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>回复最长等待</span>
+              <span style={{ color: 'var(--color-text-hint)', fontSize: 'var(--font-size-sm)' }}>{replyDelayMax} 秒</span>
+            </div>
+            <input
+              type="range"
+              min="90"
+              max="210"
+              value={replyDelayMax}
+              onChange={(e) => {
+                const v = Number(e.target.value);
+                setReplyDelayMax(v);
+                if (v < replyDelayMin) setReplyDelayMin(v);
+              }}
+              style={{ width: '100%', accentColor: 'var(--color-accent)' }}
+            />
           </div>
 
           <div className={styles.settingRow}>

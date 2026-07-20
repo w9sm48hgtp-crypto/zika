@@ -218,7 +218,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ isTyping: true });
 
     const settings = useSettingsStore.getState();
-    const delayMs = (settings.replyDelay || 1) * 60 * 1000;
+    const min = settings.replyDelayMin || 120;
+    const max = settings.replyDelayMax || 180;
+    const delayMs = (min + Math.random() * (max - min)) * 1000; // 最短~最长之间随机秒数
 
     replyTimerId = setTimeout(async () => {
       replyTimerId = null;

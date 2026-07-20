@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { db } from '../db';
 
 interface SettingsState {
-  replyDelay: number;
+  replyDelayMin: number;    // 最短等待时间（秒）60-150
+  replyDelayMax: number;    // 最长等待时间（秒）90-210
   replyCountMin: number;
   replyCountMax: number;
   textRatio: number;        // 文字字卡出现比例 %
@@ -18,7 +19,8 @@ interface SettingsState {
   soundVolume: number; // 提示音音量 0-100
 
   loadSettings: () => Promise<void>;
-  setReplyDelay: (v: number) => Promise<void>;
+  setReplyDelayMin: (v: number) => Promise<void>;
+  setReplyDelayMax: (v: number) => Promise<void>;
   setReplyCountMin: (v: number) => Promise<void>;
   setReplyCountMax: (v: number) => Promise<void>;
   setTextRatio: (v: number) => Promise<void>;
@@ -35,7 +37,8 @@ interface SettingsState {
 }
 
 const defaultSettings: Record<string, unknown> = {
-  replyDelay: 1,
+  replyDelayMin: 120,
+  replyDelayMax: 180,
   replyCountMin: 1,
   replyCountMax: 3,
   textRatio: 70,
@@ -61,7 +64,8 @@ async function saveSetting(key: string, value: unknown): Promise<void> {
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({
-  replyDelay: 1,
+  replyDelayMin: 120,
+  replyDelayMax: 180,
   replyCountMin: 1,
   replyCountMax: 3,
   textRatio: 70,
@@ -77,28 +81,30 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   soundVolume: 50,
 
   loadSettings: async () => {
-    const keys = ['replyDelay', 'replyCountMin', 'replyCountMax', 'textRatio', 'nudgeRatio', 'stickerRatio',
+    const keys = ['replyDelayMin', 'replyDelayMax', 'replyCountMin', 'replyCountMax', 'textRatio', 'nudgeRatio', 'stickerRatio',
       'userAvatar', 'partnerAvatar', 'partnerName', 'userName', 'vibrationEnabled', 'keepScreenOn', 'chatBackground', 'soundVolume'];
     const vals = await Promise.all(keys.map(getSetting));
     set({
-      replyDelay: vals[0] as number,
-      replyCountMin: vals[1] as number,
-      replyCountMax: vals[2] as number,
-      textRatio: vals[3] as number,
-      nudgeRatio: vals[4] as number,
-      stickerRatio: vals[5] as number,
-      userAvatar: vals[6] as string,
-      partnerAvatar: vals[7] as string,
-      partnerName: vals[8] as string,
-      userName: vals[9] as string,
-      vibrationEnabled: vals[10] as boolean,
-      keepScreenOn: vals[11] as boolean,
-      chatBackground: vals[12] as string,
-      soundVolume: vals[13] as number,
+      replyDelayMin: vals[0] as number,
+      replyDelayMax: vals[1] as number,
+      replyCountMin: vals[2] as number,
+      replyCountMax: vals[3] as number,
+      textRatio: vals[4] as number,
+      nudgeRatio: vals[5] as number,
+      stickerRatio: vals[6] as number,
+      userAvatar: vals[7] as string,
+      partnerAvatar: vals[8] as string,
+      partnerName: vals[9] as string,
+      userName: vals[10] as string,
+      vibrationEnabled: vals[11] as boolean,
+      keepScreenOn: vals[12] as boolean,
+      chatBackground: vals[13] as string,
+      soundVolume: vals[14] as number,
     });
   },
 
-  setReplyDelay: async (v) => { await saveSetting('replyDelay', v); set({ replyDelay: v }); },
+  setReplyDelayMin: async (v) => { await saveSetting('replyDelayMin', v); set({ replyDelayMin: v }); },
+  setReplyDelayMax: async (v) => { await saveSetting('replyDelayMax', v); set({ replyDelayMax: v }); },
   setReplyCountMin: async (v) => { await saveSetting('replyCountMin', v); set({ replyCountMin: v }); },
   setReplyCountMax: async (v) => { await saveSetting('replyCountMax', v); set({ replyCountMax: v }); },
   setTextRatio: async (v) => { await saveSetting('textRatio', v); set({ textRatio: v }); },

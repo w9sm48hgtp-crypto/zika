@@ -84,7 +84,7 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
       case 'chatSettings': {
         if (!value || typeof value !== 'object') continue;
         const record = value as Record<string, unknown>;
-        const keys = ['userAvatar', 'partnerAvatar', 'partnerName', 'replyDelay',
+        const keys = ['userAvatar', 'partnerAvatar', 'partnerName', 'replyDelayMin', 'replyDelayMax',
           'replyCountMin', 'replyCountMax', 'textRatio', 'nudgeRatio', 'stickerRatio',
           'vibrationEnabled'];
         for (const k of keys) {
