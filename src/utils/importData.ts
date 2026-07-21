@@ -11,7 +11,9 @@ export interface ImportPreview {
 /** 解析导入文件并返回预览信息 */
 export function parseImportData(json: string): { data: ExportData; preview: ImportPreview[] } | null {
   try {
-    const data: ExportData = JSON.parse(json);
+    // 清理输入：移除 BOM、首尾空白、零宽字符
+    const cleaned = json.replace(/^﻿/, '').replace(/[​‌‍﻿]/g, '').trim();
+    const data: ExportData = JSON.parse(cleaned);
     if (!data.version || !data.modules) {
       return null;
     }

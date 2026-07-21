@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { db, type Card } from '../../db';
 import styles from './CardManager.module.css';
 
@@ -87,10 +87,13 @@ export function CardManager() {
 
   // 表情包上传（支持多选）
   const [stickerUploading, setStickerUploading] = useState(false);
+  const [stickerBatchCount, setStickerBatchCount] = useState(0);
+  const stickerInputRef = useRef<HTMLInputElement>(null);
   const handleStickerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     setStickerUploading(true);
+    let added = 0;
     // 逐个读取并保存
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -106,10 +109,20 @@ export function CardManager() {
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
+      added++;
     }
     setStickerUploading(false);
+    setStickerBatchCount(prev => prev + added);
     loadCards();
     if (e.target) e.target.value = '';
+  };
+  // 继续添加：重新打开文件选择器
+  const continueStickerUpload = () => {
+    stickerInputRef.current?.click();
+  };
+  // 完成添加：重置计数
+  const finishStickerUpload = () => {
+    setStickerBatchCount(0);
   };
 
   // 单张操作
@@ -277,15 +290,44 @@ export function CardManager() {
             </div>
 
             <div className={styles.addArea}>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
                 <select className={styles.catSelect} value={stickerUploadCategory}
                   onChange={e => setStickerUploadCategory(e.target.value)}>
                   {STICKER_CATEGORIES.map(cat => <option key={cat.key} value={cat.key}>{cat.label}</option>)}
                 </select>
-                <label className={styles.uploadBtn}>
-                  [图片] {stickerUploading ? '上传中...' : '选择图片上传（可多选）'}
-                  <input type="file" accept="image/*" multiple onChange={handleStickerUpload} style={{ display: 'none' }} />
-                </label>
+                {stickerBatchCount > 0 ? (
+                  <>
+                    <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                      已添加 {stickerBatchCount} 个
+                    </span>
+                    <button className={styles.uploadBtn} onClick={continueStickerUpload} disabled={stickerUploading}>
+                      {stickerUploading ? '上传中...' : '继续添加'}
+                    </button>
+                    <button
+                      onClick={finishStickerUpload}
+                      style={{
+                        padding: '10px 20px',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius-full)',
+                        background: 'var(--color-bg)',
+                        color: 'var(--color-text-secondary)',
+                        fontSize: 'var(--font-size-md)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      完成
+                    </button>
+                  </>
+                ) : (
+                  <label className={styles.uploadBtn}>
+                    [图片] {stickerUploading ? '上传中...' : '选择图片上传（可多选）'}
+                    <input ref={stickerInputRef} type="file" accept="image/*" multiple onChange={handleStickerUpload} style={{ display: 'none' }} />
+                  </label>
+                )}
+                {/* 隐藏的 input，供"继续添加"按钮触发 */}
+                {stickerBatchCount > 0 && (
+                  <input ref={stickerInputRef} type="file" accept="image/*" multiple onChange={handleStickerUpload} style={{ display: 'none' }} />
+                )}
               </div>
               <p className={styles.hint}>
                 当前表情包：{cards.length} 个

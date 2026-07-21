@@ -243,7 +243,7 @@ function DataManagePage() {
   const handleExchangeImport = useCallback(async () => {
     if (!exchangeImport.trim()) return;
     const result = await importTextData(exchangeType, exchangeImport);
-    setExchangeMsg(`已导入 ${result.count} 条（跳过 ${result.skipped} 条重复）`);
+    setExchangeMsg(`已导入 ${result.count} 条（跳过 ${result.skipped} 条）`);
     setExchangeImport('');
   }, [exchangeType, exchangeImport]);
 

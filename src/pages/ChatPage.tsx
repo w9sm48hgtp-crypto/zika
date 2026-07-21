@@ -63,39 +63,62 @@ function ChatPage() {
   const [partnerStatus, setPartnerStatus] = useState<string | null>(null);
   const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const pickPartnerStatus = useCallback(async () => {
+  const pickPartnerStatus = useCallback(async (): Promise<string | null> => {
     try {
       const tags = await db.moodTags.toArray();
       const hisTags = tags.filter(t => t.category === 'his' || t.category === 'both');
       if (hisTags.length > 0) {
         const tag = hisTags[Math.floor(Math.random() * hisTags.length)];
-        setPartnerStatus(tag.name);
-      } else {
-        setPartnerStatus(null);
+        return tag.name;
       }
+      return null;
     } catch {
-      setPartnerStatus(null);
+      return null;
     }
   }, []);
 
-  const scheduleStatusUpdate = useCallback(() => {
-    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+  /** 选取新状态并存入 DB + 设定下次变更时间 */
+  const refreshStatus = useCallback(async () => {
+    const status = await pickPartnerStatus();
+    setPartnerStatus(status);
     // 15分钟 ~ 3小时随机间隔
     const delay = (15 + Math.random() * 165) * 60 * 1000;
+    const nextAt = Date.now() + delay;
+    await db.settings.put({ key: 'partnerStatus', value: status });
+    await db.settings.put({ key: 'partnerStatusNextAt', value: nextAt });
+    // 启动下一次定时器
+    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
     statusTimerRef.current = setTimeout(() => {
-      pickPartnerStatus();
-      scheduleStatusUpdate();
+      refreshStatus();
     }, delay);
   }, [pickPartnerStatus]);
 
-  // 初始化状态栏 + 定时器
+  // 初始化状态栏：从 DB 恢复或按时间判断是否需要更换
   useEffect(() => {
-    pickPartnerStatus();
-    scheduleStatusUpdate();
+    (async () => {
+      const [savedStatus, savedNextAt] = await Promise.all([
+        db.settings.get('partnerStatus'),
+        db.settings.get('partnerStatusNextAt'),
+      ]);
+      const nextAt = (savedNextAt?.value as number) || 0;
+
+      if (nextAt > Date.now()) {
+        // 还没到下次更换时间，恢复旧状态并继续等待
+        setPartnerStatus((savedStatus?.value as string) || null);
+        const remaining = nextAt - Date.now();
+        statusTimerRef.current = setTimeout(() => {
+          refreshStatus();
+        }, remaining);
+      } else {
+        // 已过更换时间或首次使用，立即刷新
+        refreshStatus();
+      }
+    })();
+
     return () => {
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
     };
-  }, [pickPartnerStatus, scheduleStatusUpdate]);
+  }, [refreshStatus]);
 
   useEffect(() => {
     if (!isLoaded.current) {

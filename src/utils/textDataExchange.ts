@@ -2,7 +2,7 @@
  * 文字数据交换工具
  * 将纯文本数据以换行格式导出/导入，方便在备忘录等地方手动保存
  */
-import { db } from '../db';
+import { db, type DailyRecord } from '../db';
 
 // ===== 类型定义 =====
 
@@ -228,15 +228,18 @@ export async function exportPeriodMessages(): Promise<string> {
   return list.join('\n');
 }
 
-/** 书信 → [时间] 写：xxx / [时间] 回：xxx（已回信）/ [时间] 预计回信（未回信但记录预期时间） */
+/** 书信 → [时间] 写：xxx / [时间] 回：xxx（已回信）/ [时间] 预计回信（未回信但记录预期时间）
+ *  回信内容含多条字卡（由换行拼接），导出时用 ↵ 替换换行，保证每条记录只占一行 */
 export async function exportLetters(): Promise<string> {
   const letters = await db.letters.orderBy('sentAt').toArray();
   return letters.map(l => {
     const time = formatDateTime(l.sentAt);
-    let result = `[${time}] 写：${l.userContent}`;
+    const escapedContent = l.userContent.replace(/\n/g, '↵');
+    let result = `[${time}] 写：${escapedContent}`;
     if (l.replyContent) {
       const replyTime = l.repliedAt ? formatDateTime(l.repliedAt) : time;
-      result += `\n[${replyTime}] 回：${l.replyContent}`;
+      const escapedReply = l.replyContent.replace(/\n/g, '↵');
+      result += `\n[${replyTime}] 回：${escapedReply}`;
     } else if (l.repliedAt) {
       // 还没收到回信，但记录了预计回信时间
       result += `\n[${formatDateTime(l.repliedAt)}] 预计回信`;
@@ -252,10 +255,10 @@ export async function exportAnniversaries(): Promise<string> {
   return items.map(a => `${a.name} | ${a.date} | ${typeMap[a.type] || a.type}`).join('\n');
 }
 
-/** 文字便签 → 每行一条 */
+/** 文字便签 → [时间] 内容 */
 export async function exportStickyNotes(): Promise<string> {
   const notes = await db.stickyNotes.orderBy('createdAt').toArray();
-  return notes.map(n => n.content).join('\n');
+  return notes.map(n => `[${formatDateTime(n.createdAt)}] ${n.content}`).join('\n');
 }
 
 /** 状态标签 → [分类] 标签名 */
@@ -383,16 +386,19 @@ export async function importCompanionRecords(text: string): Promise<ExchangeResu
     const match = line.match(/^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\]\s+(.+)$/);
     if (!match) continue;
     const startTime = parseDateTime(match[1]);
-    const parts = match[2].split('|').map(s => s.trim());
+    // 兼容半角和全角竖线分隔符
+    const parts = match[2].split(/[|｜]/).map(s => s.trim());
     const sceneStr = parts[0] || '';
-    const sceneNameMatch = sceneStr.match(/^(.+?)（(.+)）$/);
+    // 标准化场景名：去除全角空格等 trim() 可能漏掉的空白字符
+    const normSceneStr = sceneStr.replace(/[\s 　]+/g, '').trim();
+    const sceneNameMatch = normSceneStr.match(/^(.+?)（(.+)）$/);
     let scene: string;
     let customSceneName: string | undefined;
     if (sceneNameMatch) {
       scene = sceneMap[sceneNameMatch[1]] || 'custom';
       customSceneName = sceneNameMatch[2];
     } else {
-      scene = sceneMap[sceneStr] || 'custom';
+      scene = sceneMap[normSceneStr] || 'custom';
     }
     const modeStr = parts[1] || '';
     const mode = modeMap[modeStr] || 'countUp';
@@ -474,18 +480,22 @@ export async function importTodoItems(text: string): Promise<ExchangeResult> {
   return { count, skipped: lines.length - count - (hasTotalLine ? 1 : 0) };
 }
 
-/** 每日记录 — [日期] 纸条：xxx；xxx | 他说：xxx | 我的标签：xxx, xxx | 他的标签：xxx，按日期去重 */
+/** 每日记录 — [日期] 纸条：xxx；xxx | 他说：xxx | 我的标签：xxx, xxx | 他的标签：xxx，按日期去重
+ *  已有记录且含用户内容（手写过纸条或选过标签）→ 跳过
+ *  已有记录但为空（每日页面自动生成的占位）→ 覆盖更新 */
 export async function importDailyRecords(text: string): Promise<ExchangeResult> {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l);
   const existing = await db.dailyRecords.toArray();
-  const existingDates = new Set(existing.map(r => r.date));
+  // date → record，用于判断已有记录是否为空占位
+  const existingMap = new Map(existing.map(r => [r.date, r]));
   let count = 0;
   for (const line of lines) {
     const match = line.match(/^\[(\d{4}-\d{2}-\d{2})\]\s+(.+)$/);
     if (!match) continue;
     const date = match[1];
     const content = match[2];
-    const parts = content.split('|').map(s => s.trim());
+    // 兼容半角和全角竖线分隔符
+    const parts = content.split(/[|｜]/).map(s => s.trim());
     let userNotes: string[] = [];
     let partnerNote: string | undefined;
     let userMoodTags: string[] = [];
@@ -504,9 +514,20 @@ export async function importDailyRecords(text: string): Promise<ExchangeResult> 
       }
     }
     if (!date || /^\d{4}-\d{2}-\d{2}$/.test(date) === false) continue;
-    if (existingDates.has(date)) continue;
-    await db.dailyRecords.add({ date, userNotes, partnerNote, userMoodTags, partnerMoodTag });
-    existingDates.add(date);
+
+    const existingRecord = existingMap.get(date);
+    if (existingRecord) {
+      // 已有记录中有用户手写内容 → 保护不覆盖，跳过
+      const hasUserContent = (existingRecord.userNotes && existingRecord.userNotes.length > 0)
+        || (existingRecord.userMoodTags && existingRecord.userMoodTags.length > 0);
+      if (hasUserContent) continue;
+      // 空占位记录 → 用导入数据覆盖
+      await db.dailyRecords.update(existingRecord.id!, { userNotes, partnerNote, userMoodTags, partnerMoodTag });
+    } else {
+      await db.dailyRecords.add({ date, userNotes, partnerNote, userMoodTags, partnerMoodTag });
+    }
+    // 更新 map 防止同次导入中同日期重复处理
+    existingMap.set(date, { ...existingRecord, date, userNotes, partnerNote, userMoodTags, partnerMoodTag } as DailyRecord);
     count++;
   }
   return { count, skipped: lines.length - count };
@@ -582,7 +603,9 @@ export async function importLetters(text: string): Promise<ExchangeResult> {
         }
       }
       const time = parseDateTime(writeMatch[1]);
-      currentWrite = { time, content: writeMatch[2].trim() };
+      // 还原换行符（兼容旧格式无 ↵ 的情况）
+      const content = writeMatch[2].trim().replace(/↵/g, '\n');
+      currentWrite = { time, content };
       continue;
     }
     const expectedReplyMatch = line.match(/^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\]\s+预计回信$/);
@@ -605,7 +628,8 @@ export async function importLetters(text: string): Promise<ExchangeResult> {
     const replyMatch = line.match(/^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\]\s+回：(.+)$/);
     if (replyMatch && currentWrite) {
       const replyTime = parseDateTime(replyMatch[1]);
-      const replyContent = replyMatch[2].trim();
+      // 还原换行符（兼容旧格式无 ↵ 的情况）
+      const replyContent = replyMatch[2].trim().replace(/↵/g, '\n');
       const key = `${currentWrite.content}|${replyContent}`;
       if (!existingPairs.has(key)) {
         await db.letters.add({
@@ -619,7 +643,8 @@ export async function importLetters(text: string): Promise<ExchangeResult> {
       }
       currentWrite = null;
     } else if (replyMatch) {
-      const replyContent = replyMatch[2].trim();
+      // 还原换行符（兼容旧格式无 ↵ 的情况）
+      const replyContent = replyMatch[2].trim().replace(/↵/g, '\n');
       const key = `|${replyContent}`;
       if (!existingPairs.has(key)) {
         await db.letters.add({
@@ -667,18 +692,29 @@ export async function importAnniversaries(text: string): Promise<ExchangeResult>
   return { count, skipped: lines.length - count };
 }
 
-/** 文字便签 — 每行一条，去重 */
+/** 文字便签 — 每行一条（新格式：[时间] 内容；旧格式：纯内容），去重 */
 export async function importStickyNotes(text: string): Promise<ExchangeResult> {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l);
   const existing = await db.stickyNotes.toArray();
   const existingContents = new Set(existing.map(n => n.content));
   let count = 0;
   for (const line of lines) {
-    if (!existingContents.has(line)) {
-      await db.stickyNotes.add({ content: line, createdAt: Date.now(), updatedAt: Date.now() });
-      existingContents.add(line);
-      count++;
+    // 尝试匹配新格式：[YYYY-MM-DD HH:MM] content
+    const match = line.match(/^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\]\s+(.+)$/);
+    let content: string;
+    let createdAt: number;
+    if (match) {
+      createdAt = parseDateTime(match[1]);
+      content = match[2].trim();
+    } else {
+      // 旧格式兼容：纯内容，无时间戳
+      content = line;
+      createdAt = Date.now();
     }
+    if (!content || existingContents.has(content)) continue;
+    await db.stickyNotes.add({ content, createdAt, updatedAt: createdAt });
+    existingContents.add(content);
+    count++;
   }
   return { count, skipped: lines.length - count };
 }
