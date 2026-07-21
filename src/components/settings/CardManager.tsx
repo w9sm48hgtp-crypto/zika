@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db, type Card } from '../../db';
 import styles from './CardManager.module.css';
 
@@ -87,13 +87,10 @@ export function CardManager() {
 
   // 表情包上传
   const [stickerUploading, setStickerUploading] = useState(false);
-  const [stickerBatchCount, setStickerBatchCount] = useState(0);
-  const stickerInputRef = useRef<HTMLInputElement>(null);
-
-  // 处理选中的文件（通用逻辑）
-  const processStickerFiles = async (files: File[]) => {
+  const handleStickerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
     setStickerUploading(true);
-    let added = 0;
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const dataUrl = await new Promise<string>((resolve) => {
@@ -108,58 +105,10 @@ export function CardManager() {
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
-      added++;
     }
     setStickerUploading(false);
-    setStickerBatchCount(prev => prev + added);
     loadCards();
-  };
-
-  // 优先用 File System Access API（支持多选），不支持则回退到 <input multiple>
-  const pickStickerFiles = async () => {
-    try {
-      if ('showOpenFilePicker' in window) {
-        const fileHandles = await (window as any).showOpenFilePicker({
-          types: [{
-            description: '图片',
-            accept: { 'image/*': ['.png', '.gif', '.jpg', '.jpeg', '.webp', '.bmp', '.svg'] }
-          }],
-          multiple: true,
-        });
-        const files: File[] = [];
-        for (const handle of fileHandles) {
-          const file = await handle.getFile();
-          files.push(file);
-        }
-        if (files.length > 0) {
-          await processStickerFiles(files);
-        }
-        return;
-      }
-    } catch (err: any) {
-      // 用户取消（AbortError）静默处理；其他错误回退到传统方式
-      if (err?.name === 'AbortError') return;
-    }
-    // 回退：用传统 <input multiple>
-    stickerInputRef.current?.click();
-  };
-
-  // 传统 <input multiple> 的 onChange 处理（回退方案）
-  const handleStickerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    await processStickerFiles(Array.from(files));
     if (e.target) e.target.value = '';
-  };
-
-  // 继续添加
-  const continueStickerUpload = () => {
-    pickStickerFiles();
-  };
-
-  // 完成添加：重置计数
-  const finishStickerUpload = () => {
-    setStickerBatchCount(0);
   };
 
   // 单张操作
@@ -332,36 +281,10 @@ export function CardManager() {
                   onChange={e => setStickerUploadCategory(e.target.value)}>
                   {STICKER_CATEGORIES.map(cat => <option key={cat.key} value={cat.key}>{cat.label}</option>)}
                 </select>
-                {stickerBatchCount > 0 ? (
-                  <>
-                    <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                      已添加 {stickerBatchCount} 个
-                    </span>
-                    <button className={styles.uploadBtn} onClick={continueStickerUpload} disabled={stickerUploading}>
-                      {stickerUploading ? '上传中...' : '继续添加'}
-                    </button>
-                    <button
-                      onClick={finishStickerUpload}
-                      style={{
-                        padding: '10px 20px',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: 'var(--radius-full)',
-                        background: 'var(--color-bg)',
-                        color: 'var(--color-text-secondary)',
-                        fontSize: 'var(--font-size-md)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      完成
-                    </button>
-                  </>
-                ) : (
-                  <button className={styles.uploadBtn} onClick={pickStickerFiles} disabled={stickerUploading}>
-                    [图片] {stickerUploading ? '上传中...' : '选择图片上传（可多选）'}
-                  </button>
-                )}
-                {/* 隐藏的 input，作为 File System Access API 不支持时的回退 */}
-                <input ref={stickerInputRef} type="file" accept="image/*" multiple onChange={handleStickerUpload} style={{ display: 'none' }} />
+                <label className={styles.uploadBtn}>
+                  [图片] {stickerUploading ? '上传中...' : '选择图片上传（可多选）'}
+                  <input type="file" accept="image/*" multiple onChange={handleStickerUpload} style={{ display: 'none' }} />
+                </label>
               </div>
               <p className={styles.hint}>
                 当前表情包：{cards.length} 个
