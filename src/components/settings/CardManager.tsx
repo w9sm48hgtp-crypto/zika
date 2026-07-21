@@ -85,16 +85,15 @@ export function CardManager() {
     loadCards();
   };
 
-  // 表情包上传（支持多选）
+  // 表情包上传
   const [stickerUploading, setStickerUploading] = useState(false);
   const [stickerBatchCount, setStickerBatchCount] = useState(0);
   const stickerInputRef = useRef<HTMLInputElement>(null);
-  const handleStickerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+
+  // 处理选中的文件（通用逻辑）
+  const processStickerFiles = async (files: File[]) => {
     setStickerUploading(true);
     let added = 0;
-    // 逐个读取并保存
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const dataUrl = await new Promise<string>((resolve) => {
@@ -114,12 +113,50 @@ export function CardManager() {
     setStickerUploading(false);
     setStickerBatchCount(prev => prev + added);
     loadCards();
-    if (e.target) e.target.value = '';
   };
-  // 继续添加：重新打开文件选择器
-  const continueStickerUpload = () => {
+
+  // 优先用 File System Access API（支持多选），不支持则回退到 <input multiple>
+  const pickStickerFiles = async () => {
+    try {
+      if ('showOpenFilePicker' in window) {
+        const fileHandles = await (window as any).showOpenFilePicker({
+          types: [{
+            description: '图片',
+            accept: { 'image/*': ['.png', '.gif', '.jpg', '.jpeg', '.webp', '.bmp', '.svg'] }
+          }],
+          multiple: true,
+        });
+        const files: File[] = [];
+        for (const handle of fileHandles) {
+          const file = await handle.getFile();
+          files.push(file);
+        }
+        if (files.length > 0) {
+          await processStickerFiles(files);
+        }
+        return;
+      }
+    } catch (err: any) {
+      // 用户取消（AbortError）静默处理；其他错误回退到传统方式
+      if (err?.name === 'AbortError') return;
+    }
+    // 回退：用传统 <input multiple>
     stickerInputRef.current?.click();
   };
+
+  // 传统 <input multiple> 的 onChange 处理（回退方案）
+  const handleStickerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    await processStickerFiles(Array.from(files));
+    if (e.target) e.target.value = '';
+  };
+
+  // 继续添加
+  const continueStickerUpload = () => {
+    pickStickerFiles();
+  };
+
   // 完成添加：重置计数
   const finishStickerUpload = () => {
     setStickerBatchCount(0);
@@ -319,15 +356,12 @@ export function CardManager() {
                     </button>
                   </>
                 ) : (
-                  <label className={styles.uploadBtn}>
+                  <button className={styles.uploadBtn} onClick={pickStickerFiles} disabled={stickerUploading}>
                     [图片] {stickerUploading ? '上传中...' : '选择图片上传（可多选）'}
-                    <input ref={stickerInputRef} type="file" accept="image/*" multiple onChange={handleStickerUpload} style={{ display: 'none' }} />
-                  </label>
+                  </button>
                 )}
-                {/* 隐藏的 input，供"继续添加"按钮触发 */}
-                {stickerBatchCount > 0 && (
-                  <input ref={stickerInputRef} type="file" accept="image/*" multiple onChange={handleStickerUpload} style={{ display: 'none' }} />
-                )}
+                {/* 隐藏的 input，作为 File System Access API 不支持时的回退 */}
+                <input ref={stickerInputRef} type="file" accept="image/*" multiple onChange={handleStickerUpload} style={{ display: 'none' }} />
               </div>
               <p className={styles.hint}>
                 当前表情包：{cards.length} 个
