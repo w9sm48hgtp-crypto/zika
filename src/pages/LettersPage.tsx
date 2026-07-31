@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLetterStore } from '../stores/letterStore';
+import { useLetterStore, type LetterFilter } from '../stores/letterStore';
 import { db } from '../db';
 import styles from './LettersPage.module.css';
+
+const FILTER_TABS: { key: LetterFilter; label: string }[] = [
+  { key: 'all', label: '总体' },
+  { key: 'sent', label: '我的来信' },
+  { key: 'incoming', label: '他的来信' },
+];
 
 function formatDate(ts: number): string {
   const d = new Date(ts);
@@ -63,7 +69,7 @@ function FormattedLetter({ content, isReply }: { content: string; isReply?: bool
 
 function LettersPage() {
   const navigate = useNavigate();
-  const { letters, loading, loadLetters, sendLetter, checkReplies, deleteLetter } = useLetterStore();
+  const { letters, loading, filter, setFilter, loadLetters, sendLetter, checkReplies, checkIncoming, deleteLetter } = useLetterStore();
 
   const [isComposing, setIsComposing] = useState(false);
   const [letterText, setLetterText] = useState('');
@@ -77,11 +83,14 @@ function LettersPage() {
   useEffect(() => {
     if (!isLoaded.current) {
       isLoaded.current = true;
+      // 清除未读来信标记
+      db.settings.put({ key: 'hasUnreadIncoming', value: false });
       loadLetters().then(() => {
         checkReplies();
+        checkIncoming();
       });
     }
-  }, [loadLetters, checkReplies]);
+  }, [loadLetters, checkReplies, checkIncoming]);
 
   const handleSend = async () => {
     const content = letterText.trim();
@@ -117,11 +126,24 @@ function LettersPage() {
         <h1 className={styles.pageTitle}>书信</h1>
       </div>
 
+      {/* 分类筛选 */}
+      <div className={styles.filterTabs}>
+        {FILTER_TABS.map(tab => (
+          <button
+            key={tab.key}
+            className={`${styles.filterTab} ${filter === tab.key ? styles.filterTabActive : ''}`}
+            onClick={() => setFilter(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {/* 累计信数 */}
       <p className={styles.letterCount}>共 {letters.length} 封信</p>
 
-      {/* 写新信按钮 */}
-      {!isComposing && (
+      {/* 写新信按钮 — 仅在"总体"和"我的来信"时显示 */}
+      {!isComposing && filter !== 'incoming' && (
         <button className={styles.composeBtn} onClick={() => setIsComposing(true)}>
           ✉ 写一封信给他
         </button>
@@ -168,8 +190,9 @@ function LettersPage() {
         <div className={styles.letterList}>
           {letters.map(letter => {
             const isExpanded = expandedId === letter.id;
+            const isIncoming = letter.direction === 'incoming';
             const hasReply = !!letter.replyContent;
-            const replyPending = !hasReply && letter.repliedAt != null && letter.repliedAt > Date.now();
+            const replyPending = !isIncoming && !hasReply && letter.repliedAt != null && letter.repliedAt > Date.now();
 
             return (
               <div key={letter.id} className={styles.letterCard}>
@@ -177,7 +200,9 @@ function LettersPage() {
                 <div className={styles.letterCardHeader} onClick={() => toggleExpand(letter.id!)}>
                   <div className={styles.letterMeta}>
                     <span className={styles.letterDate}>{formatDate(letter.sentAt)}</span>
-                    {hasReply ? (
+                    {isIncoming ? (
+                      <span className={`${styles.letterStatus} ${styles.statusIncoming}`}>他写给你的</span>
+                    ) : hasReply ? (
                       <span className={`${styles.letterStatus} ${styles.statusReplied}`}>已回信</span>
                     ) : replyPending ? (
                       <span className={`${styles.letterStatus} ${styles.statusWaiting}`}>等待回信</span>
@@ -198,20 +223,25 @@ function LettersPage() {
                 {/* 展开详情 */}
                 {isExpanded && (
                   <div className={styles.letterBody}>
-                    {/* 我的信 */}
+                    {/* 来信或我的信 */}
                     <div className={styles.letterContent}>
-                      <FormattedLetter content={letter.userContent} />
+                      {isIncoming ? (
+                        <FormattedLetter content={letter.userContent} isReply />
+                      ) : (
+                        <FormattedLetter content={letter.userContent} />
+                      )}
                     </div>
 
-                    {/* 回信 */}
-                    {hasReply ? (
+                    {/* 回信 — 仅用户写的信有回信 */}
+                    {!isIncoming && hasReply && (
                       <div className={styles.replySection}>
                         <div className={styles.replyLabel}>他的回信</div>
                         <div className={styles.replyContent}>
                           <FormattedLetter content={letter.replyContent!} isReply />
                         </div>
                       </div>
-                    ) : replyPending ? (
+                    )}
+                    {!isIncoming && replyPending && (
                       <div className={styles.replySection}>
                         <div className={styles.replyPending}>
                           📬 回信还在路上...
@@ -219,7 +249,7 @@ function LettersPage() {
                           <span className={styles.replyPendingTime}>{formatReplyTime(letter.repliedAt!)}</span>
                         </div>
                       </div>
-                    ) : null}
+                    )}
 
                     {/* 删除 */}
                     <div className={styles.letterActions}>

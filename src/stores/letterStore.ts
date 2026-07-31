@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { db, type Letter } from '../db';
 import { pickLetterReply } from '../utils/cardExtractor';
+import { checkAndGenerateIncoming } from '../utils/incomingLetter';
 import { useSettingsStore } from './settingsStore';
 
 /** 格式化书信：自动添加称呼和落款 */
@@ -21,23 +22,42 @@ function cancelLetterTimer(id: number) {
   }
 }
 
+export type LetterFilter = 'all' | 'sent' | 'incoming';
+
 interface LetterState {
   letters: Letter[];
   loading: boolean;
+  filter: LetterFilter;
+  setFilter: (filter: LetterFilter) => void;
   loadLetters: () => Promise<void>;
   sendLetter: (content: string) => Promise<number>;
   generateReply: (id: number) => Promise<void>;
   checkReplies: () => Promise<void>;
+  checkIncoming: () => Promise<number | null>;
   deleteLetter: (id: number) => Promise<void>;
 }
 
 export const useLetterStore = create<LetterState>((set, get) => ({
   letters: [],
   loading: false,
+  filter: 'all' as LetterFilter,
+
+  setFilter: (filter: LetterFilter) => {
+    set({ filter });
+    get().loadLetters();
+  },
 
   loadLetters: async () => {
     set({ loading: true });
-    const letters = await db.letters.orderBy('sentAt').reverse().toArray();
+    const { filter } = get();
+    let letters: Letter[];
+    if (filter === 'sent') {
+      letters = await db.letters.where('direction').equals('sent').reverse().sortBy('sentAt');
+    } else if (filter === 'incoming') {
+      letters = await db.letters.where('direction').equals('incoming').reverse().sortBy('sentAt');
+    } else {
+      letters = await db.letters.orderBy('sentAt').reverse().toArray();
+    }
     set({ letters, loading: false });
   },
 
@@ -53,6 +73,7 @@ export const useLetterStore = create<LetterState>((set, get) => ({
     // 8-24小时随机延迟
     const delayMs = (8 * 60 * 60 * 1000) + Math.random() * (16 * 60 * 60 * 1000);
     const id = await db.letters.add({
+      direction: 'sent',
       userContent: formatted,
       sentAt: now,
       repliedAt: now + delayMs,
@@ -88,8 +109,16 @@ export const useLetterStore = create<LetterState>((set, get) => ({
     const rawReply = await pickLetterReply();
     const replyTime = Date.now();
     const formattedReply = formatLetter(rawReply, userName, partnerName, replyTime);
-    await db.letters.update(id, { replyContent: formattedReply });
+    await db.letters.update(id, { direction: 'sent', replyContent: formattedReply });
     await get().loadLetters();
+  },
+
+  checkIncoming: async () => {
+    const id = await checkAndGenerateIncoming();
+    if (id != null) {
+      await get().loadLetters();
+    }
+    return id;
   },
 
   checkReplies: async () => {

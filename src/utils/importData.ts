@@ -1,5 +1,6 @@
 import { db } from '../db';
 import type { ExportData } from './exportData';
+import { syncCategoriesFromCards } from './textDataExchange';
 
 export interface ImportPreview {
   key: string;
@@ -59,6 +60,8 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
             updatedAt: Date.now(),
           }));
         if (toAdd.length > 0) await db.cards.bulkAdd(toAdd as any);
+        // 同步分类到 settings，确保 UI 筛选下拉可见
+        await syncCategoriesFromCards();
         break;
       }
       case 'soundTracks': {
@@ -138,7 +141,8 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
       }
       case 'letters': {
         if (!Array.isArray(value)) continue;
-        const toAdd = value.map(({ id, ...rest }: { id?: number; userContent: string; replyContent?: string; sentAt: number; repliedAt?: number }) => ({
+        const toAdd = value.map(({ id, ...rest }: { id?: number; direction?: string; userContent: string; replyContent?: string; sentAt: number; repliedAt?: number }) => ({
+          direction: rest.direction === 'incoming' ? 'incoming' : 'sent',
           userContent: rest.userContent,
           replyContent: rest.replyContent,
           sentAt: rest.sentAt,
@@ -149,8 +153,9 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
       }
       case 'companionRecords': {
         if (!Array.isArray(value)) continue;
+        const validScenes = new Set(['study', 'eat', 'sleep', 'custom']);
         const toAdd = value.map(({ id, ...rest }: { id?: number; scene: string; customSceneName?: string; mode: string; targetDuration?: number; actualDuration?: number; startTime: number; endTime?: number; status: string }) => ({
-          scene: rest.scene,
+          scene: validScenes.has(rest.scene) ? rest.scene : 'custom',
           customSceneName: rest.customSceneName,
           mode: rest.mode,
           targetDuration: rest.targetDuration,

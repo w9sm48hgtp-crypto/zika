@@ -58,6 +58,7 @@ export interface MoodTag {
 /** 书信 */
 export interface Letter {
   id?: number;
+  direction: 'sent' | 'incoming'; // 我写的 | 系统生成的来信
   userContent: string;
   replyContent?: string;
   sentAt: number;
@@ -245,6 +246,18 @@ class ZiKaDatabase extends Dexie {
     // v9: 纪念日表补充 createdAt 索引
     this.version(9).stores({
       anniversaries: '++id, type, date, createdAt',
+    });
+
+    // v10: Letter 新增 direction 字段（sent | incoming）
+    this.version(10).stores({
+      letters: '++id, direction, sentAt',
+    }).upgrade(async (tx) => {
+      const letters = await tx.table('letters').toArray();
+      for (const l of letters) {
+        if (!l.direction) {
+          await tx.table('letters').update(l.id, { direction: 'sent' });
+        }
+      }
     });
   }
 }

@@ -57,6 +57,22 @@ export const DATA_TYPE_META: Record<DataType, DataTypeMeta> = {
 
 // ===== 辅助函数 =====
 
+/** 从所有字卡同步分类名到 settings，确保导入后的分类在筛选下拉中可见 */
+export async function syncCategoriesFromCards(): Promise<void> {
+  const cards = await db.cards.toArray();
+  const cardCategories = [...new Set(
+    cards.map(c => c.category).filter(Boolean)
+  )] as string[];
+
+  const row = await db.settings.get('categories');
+  const existing: string[] = (row?.value as string[]) || [];
+  const merged = [...new Set([...existing, ...cardCategories])];
+
+  if (merged.length !== existing.length) {
+    await db.settings.put({ key: 'categories', value: merged });
+  }
+}
+
 function pad(n: number): string {
   return n.toString().padStart(2, '0');
 }
@@ -161,7 +177,8 @@ export async function exportCompanionRecords(): Promise<string> {
   const statusMap: Record<string, string> = { running: '进行中', completed: '已完成', cancelled: '已取消' };
   return records.map(r => {
     const time = formatDateTime(r.startTime);
-    const scene = sceneMap[r.scene] || r.scene;
+    // 确保导出的永远是中文：先查 map，未知值统一归为"自定义"
+    const scene = sceneMap[r.scene] || '自定义';
     const name = r.customSceneName ? `（${r.customSceneName}）` : '';
     const mode = modeMap[r.mode] || r.mode;
     const target = r.targetDuration ? `目标${r.targetDuration}分` : '';
@@ -229,16 +246,24 @@ export async function exportPeriodMessages(): Promise<string> {
 }
 
 /** 书信 → [时间] 写：xxx / [时间] 回：xxx（已回信）/ [时间] 预计回信（未回信但记录预期时间）
+ *  来信 → [时间] 来信：xxx
  *  回信内容含多条字卡（由换行拼接），导出时用 ↵ 替换换行，保证每条记录只占一行 */
 export async function exportLetters(): Promise<string> {
   const letters = await db.letters.orderBy('sentAt').toArray();
   return letters.map(l => {
     const time = formatDateTime(l.sentAt);
-    const escapedContent = l.userContent.replace(/\n/g, '↵');
+    // 替换所有换行符（\r\n、\r、\n）为 ↵，确保每条记录只占一行
+    const escapedContent = l.userContent.replace(/\r?\n|\r/g, '↵');
+
+    // 来信：使用特殊标记
+    if (l.direction === 'incoming') {
+      return `[${time}] 来信：${escapedContent}`;
+    }
+
     let result = `[${time}] 写：${escapedContent}`;
     if (l.replyContent) {
       const replyTime = l.repliedAt ? formatDateTime(l.repliedAt) : time;
-      const escapedReply = l.replyContent.replace(/\n/g, '↵');
+      const escapedReply = l.replyContent.replace(/\r?\n|\r/g, '↵');
       result += `\n[${replyTime}] 回：${escapedReply}`;
     } else if (l.repliedAt) {
       // 还没收到回信，但记录了预计回信时间
@@ -302,6 +327,8 @@ export async function importCardText(text: string): Promise<ExchangeResult> {
       count++;
     }
   }
+  // 同步分类名到 settings，确保 UI 筛选下拉可见
+  await syncCategoriesFromCards();
   return { count, skipped: rawLines.filter(l => l.trim()).length - count };
 }
 
@@ -376,7 +403,14 @@ export async function importEncouragementMessages(text: string): Promise<Exchang
 /** 陪伴记录 — [时间] 场景 | 模式 | 目标 | 实际 | 状态，去重 */
 export async function importCompanionRecords(text: string): Promise<ExchangeResult> {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-  const sceneMap: Record<string, string> = { '学习': 'study', '吃饭': 'eat', '睡眠': 'sleep', '自定义': 'custom' };
+  // 双向映射：同时支持中文名和英文名，兼容新旧导出格式
+  const sceneMap: Record<string, string> = {
+    '学习': 'study', '吃饭': 'eat', '睡眠': 'sleep', '自定义': 'custom',
+    // 兼容旧格式（英文直接传入或从旧 JSON 导出）
+    'study': 'study', 'eat': 'eat', 'sleep': 'sleep', 'custom': 'custom',
+    // 兼容 CompanionHistoryPage 中 custom 显示为"其他"的情况
+    '其他': 'custom',
+  };
   const modeMap: Record<string, string> = { '正计时': 'countUp', '倒计时': 'countDown' };
   const statusMap: Record<string, string> = { '进行中': 'running', '已完成': 'completed', '已取消': 'cancelled' };
   const existing = await db.companionRecords.toArray();
@@ -422,7 +456,7 @@ export async function importCompanionRecords(text: string): Promise<ExchangeResu
       targetDuration,
       actualDuration,
       startTime,
-      status: status as 'completed' | 'cancelled',
+      status: status as 'running' | 'completed' | 'cancelled',
     });
     existingKeys.add(key);
     count++;
@@ -584,36 +618,87 @@ export async function importPeriodMessages(text: string): Promise<ExchangeResult
   return { count, skipped: lines.length - count };
 }
 
-/** 书信 — [时间] 写：xxx / 回：xxx，去重 */
+/** 检查一行是否为时间戳格式开头（用于判断回信内容是否延续到下一行） */
+function isTimestampLine(line: string): boolean {
+  return /^\[\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\]/.test(line);
+}
+
+/** 书信 — [时间] 写：xxx / 回：xxx，去重
+ *  兼容新旧格式：新版用 ↵ 编码换行（回信在单行），旧版回信内容实际换行跨多行 */
 export async function importLetters(text: string): Promise<ExchangeResult> {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l);
   const existing = await db.letters.toArray();
   const existingPairs = new Set(existing.map(l => `${l.userContent}|${l.replyContent || ''}`));
   let count = 0;
   let currentWrite: { time: number; content: string } | null = null;
-  for (const line of lines) {
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
     const writeMatch = line.match(/^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\]\s+写：(.+)$/);
     if (writeMatch) {
       if (currentWrite) {
         const key = `${currentWrite.content}|`;
         if (!existingPairs.has(key)) {
-          await db.letters.add({ userContent: currentWrite.content, sentAt: currentWrite.time });
+          await db.letters.add({ direction: 'sent', userContent: currentWrite.content, sentAt: currentWrite.time });
           existingPairs.add(key);
           count++;
         }
       }
       const time = parseDateTime(writeMatch[1]);
-      // 还原换行符（兼容旧格式无 ↵ 的情况）
-      const content = writeMatch[2].trim().replace(/↵/g, '\n');
+      // 将后续非时间戳行合并到写信内容（兼容旧格式写信跨多行的情况）
+      let content = writeMatch[2];
+      while (i + 1 < lines.length && !isTimestampLine(lines[i + 1])) {
+        i++;
+        content += '\n' + lines[i];
+      }
+      // 还原换行符
+      content = content.trim().replace(/↵/g, '\n');
       currentWrite = { time, content };
       continue;
     }
+
+    // 来信格式：[时间] 来信：xxx
+    const incomingMatch = line.match(/^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\]\s+来信：(.+)$/);
+    if (incomingMatch) {
+      // 保存上一个 currentWrite（如果有）
+      if (currentWrite) {
+        const key = `${currentWrite.content}|`;
+        if (!existingPairs.has(key)) {
+          await db.letters.add({ direction: 'sent', userContent: currentWrite.content, sentAt: currentWrite.time });
+          existingPairs.add(key);
+          count++;
+        }
+        currentWrite = null;
+      }
+      const time = parseDateTime(incomingMatch[1]);
+      // 将后续非时间戳行合并到内容（兼容旧格式）
+      let content = incomingMatch[2];
+      while (i + 1 < lines.length && !isTimestampLine(lines[i + 1])) {
+        i++;
+        content += '\n' + lines[i];
+      }
+      content = content.trim().replace(/↵/g, '\n');
+      const key = `${content}|`;
+      if (!existingPairs.has(key)) {
+        await db.letters.add({
+          direction: 'incoming',
+          userContent: content,
+          sentAt: time,
+        });
+        existingPairs.add(key);
+        count++;
+      }
+      continue;
+    }
+
     const expectedReplyMatch = line.match(/^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\]\s+预计回信$/);
     if (expectedReplyMatch && currentWrite) {
       const replyTime = parseDateTime(expectedReplyMatch[1]);
       const key = `${currentWrite.content}|`;
       if (!existingPairs.has(key)) {
         await db.letters.add({
+          direction: 'sent',
           userContent: currentWrite.content,
           sentAt: currentWrite.time,
           repliedAt: replyTime,
@@ -628,11 +713,18 @@ export async function importLetters(text: string): Promise<ExchangeResult> {
     const replyMatch = line.match(/^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\]\s+回：(.+)$/);
     if (replyMatch && currentWrite) {
       const replyTime = parseDateTime(replyMatch[1]);
-      // 还原换行符（兼容旧格式无 ↵ 的情况）
-      const replyContent = replyMatch[2].trim().replace(/↵/g, '\n');
+      // 将后续非时间戳行合并到回信内容（兼容旧格式回信跨多行的情况）
+      let replyContent = replyMatch[2];
+      while (i + 1 < lines.length && !isTimestampLine(lines[i + 1])) {
+        i++;
+        replyContent += '\n' + lines[i];
+      }
+      // 还原换行符
+      replyContent = replyContent.trim().replace(/↵/g, '\n');
       const key = `${currentWrite.content}|${replyContent}`;
       if (!existingPairs.has(key)) {
         await db.letters.add({
+          direction: 'sent',
           userContent: currentWrite.content,
           replyContent,
           sentAt: currentWrite.time,
@@ -642,12 +734,21 @@ export async function importLetters(text: string): Promise<ExchangeResult> {
         count++;
       }
       currentWrite = null;
-    } else if (replyMatch) {
-      // 还原换行符（兼容旧格式无 ↵ 的情况）
-      const replyContent = replyMatch[2].trim().replace(/↵/g, '\n');
+      continue;
+    }
+
+    if (replyMatch) {
+      // 独立的回信（无对应的写信） — 同样合并后续行
+      let replyContent = replyMatch[2];
+      while (i + 1 < lines.length && !isTimestampLine(lines[i + 1])) {
+        i++;
+        replyContent += '\n' + lines[i];
+      }
+      replyContent = replyContent.trim().replace(/↵/g, '\n');
       const key = `|${replyContent}`;
       if (!existingPairs.has(key)) {
         await db.letters.add({
+          direction: 'sent',
           userContent: '',
           replyContent,
           sentAt: parseDateTime(replyMatch[1]),
@@ -658,10 +759,11 @@ export async function importLetters(text: string): Promise<ExchangeResult> {
       }
     }
   }
+
   if (currentWrite) {
     const key = `${currentWrite.content}|`;
     if (!existingPairs.has(key)) {
-      await db.letters.add({ userContent: currentWrite.content, sentAt: currentWrite.time });
+      await db.letters.add({ direction: 'sent', userContent: currentWrite.content, sentAt: currentWrite.time });
       existingPairs.add(key);
       count++;
     }
