@@ -1,6 +1,6 @@
 import { db } from '../db';
 import type { ExportData } from './exportData';
-import { syncCategoriesFromCards } from './textDataExchange';
+import { syncCategoriesFromCards, ensureFormattedLetter } from './textDataExchange';
 
 export interface ImportPreview {
   key: string;
@@ -141,13 +141,32 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
       }
       case 'letters': {
         if (!Array.isArray(value)) continue;
-        const toAdd = value.map(({ id, ...rest }: { id?: number; direction?: string; userContent: string; replyContent?: string; sentAt: number; repliedAt?: number }) => ({
-          direction: rest.direction === 'incoming' ? 'incoming' : 'sent',
-          userContent: rest.userContent,
-          replyContent: rest.replyContent,
-          sentAt: rest.sentAt,
-          repliedAt: rest.repliedAt,
-        }));
+        const toAdd = await Promise.all(
+          (value as Array<{ id?: number; direction?: string; userContent: string; replyContent?: string; sentAt: number; repliedAt?: number }>).map(async ({ id, ...rest }) => {
+            const direction = rest.direction === 'incoming' ? 'incoming' : 'sent';
+            // 自动格式化：确保有致xxx + 日期 + 落款
+            const userContent = await ensureFormattedLetter(
+              rest.userContent,
+              direction === 'incoming' ? 'incoming' : 'sent',
+              rest.sentAt,
+            );
+            let replyContent = rest.replyContent;
+            if (replyContent) {
+              replyContent = await ensureFormattedLetter(
+                replyContent,
+                'reply',
+                rest.repliedAt || rest.sentAt,
+              );
+            }
+            return {
+              direction,
+              userContent,
+              replyContent,
+              sentAt: rest.sentAt,
+              repliedAt: rest.repliedAt,
+            };
+          })
+        );
         if (toAdd.length > 0) await db.letters.bulkAdd(toAdd as any);
         break;
       }

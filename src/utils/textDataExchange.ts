@@ -57,6 +57,32 @@ export const DATA_TYPE_META: Record<DataType, DataTypeMeta> = {
 
 // ===== 辅助函数 =====
 
+/** 确保书信内容有正确的格式（致xxx + 日期 + 落款），如果已有格式则原样返回 */
+export async function ensureFormattedLetter(
+  content: string,
+  type: 'sent' | 'reply' | 'incoming',
+  timestamp: number,
+): Promise<string> {
+  // 已有格式（以"致"开头）则原样返回，避免双重格式化
+  if (content.startsWith('致')) return content;
+
+  const partnerNameRow = await db.settings.get('partnerName');
+  const userNameRow = await db.settings.get('userName');
+  const partnerName = (partnerNameRow?.value as string) || '他';
+  const userName = (userNameRow?.value as string) || '我';
+
+  const d = new Date(timestamp);
+  const dateStr = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+
+  if (type === 'sent') {
+    // 我写给他的信：致他 + 内容 + 日期 + 我
+    return `致${partnerName}：\n${content}\n${dateStr}\n${userName}`;
+  } else {
+    // 回信或来信：致我 + 内容 + 日期 + 他
+    return `致${userName}：\n${content}\n${dateStr}\n${partnerName}`;
+  }
+}
+
 /** 从所有字卡同步分类名到 settings，确保导入后的分类在筛选下拉中可见 */
 export async function syncCategoriesFromCards(): Promise<void> {
   const cards = await db.cards.toArray();
@@ -422,6 +448,8 @@ export async function importCompanionRecords(text: string): Promise<ExchangeResu
     const startTime = parseDateTime(match[1]);
     // 兼容半角和全角竖线分隔符
     const parts = match[2].split(/[|｜]/).map(s => s.trim());
+    // 导出格式以 | 开头（如 "| 学习 | 正计时 | ..."），去掉首个空元素
+    if (parts[0] === '') parts.shift();
     const sceneStr = parts[0] || '';
     // 标准化场景名：去除全角空格等 trim() 可能漏掉的空白字符
     const normSceneStr = sceneStr.replace(/[\s 　]+/g, '').trim();
@@ -654,7 +682,9 @@ export async function importLetters(text: string): Promise<ExchangeResult> {
       }
       // 还原换行符
       content = content.trim().replace(/↵/g, '\n');
-      currentWrite = { time, content };
+      // 自动格式化：致对方 + 内容 + 日期 + 我的名字
+      const formatted = await ensureFormattedLetter(content, 'sent', time);
+      currentWrite = { time, content: formatted };
       continue;
     }
 
@@ -679,11 +709,13 @@ export async function importLetters(text: string): Promise<ExchangeResult> {
         content += '\n' + lines[i];
       }
       content = content.trim().replace(/↵/g, '\n');
-      const key = `${content}|`;
+      // 自动格式化：致我 + 内容 + 日期 + 他
+      const formatted = await ensureFormattedLetter(content, 'incoming', time);
+      const key = `${formatted}|`;
       if (!existingPairs.has(key)) {
         await db.letters.add({
           direction: 'incoming',
-          userContent: content,
+          userContent: formatted,
           sentAt: time,
         });
         existingPairs.add(key);
@@ -721,12 +753,14 @@ export async function importLetters(text: string): Promise<ExchangeResult> {
       }
       // 还原换行符
       replyContent = replyContent.trim().replace(/↵/g, '\n');
-      const key = `${currentWrite.content}|${replyContent}`;
+      // 自动格式化回信：致我 + 内容 + 日期 + 他
+      const formattedReply = await ensureFormattedLetter(replyContent, 'reply', replyTime);
+      const key = `${currentWrite.content}|${formattedReply}`;
       if (!existingPairs.has(key)) {
         await db.letters.add({
           direction: 'sent',
           userContent: currentWrite.content,
-          replyContent,
+          replyContent: formattedReply,
           sentAt: currentWrite.time,
           repliedAt: replyTime,
         });
@@ -745,12 +779,14 @@ export async function importLetters(text: string): Promise<ExchangeResult> {
         replyContent += '\n' + lines[i];
       }
       replyContent = replyContent.trim().replace(/↵/g, '\n');
-      const key = `|${replyContent}`;
+      // 自动格式化回信：致我 + 内容 + 日期 + 他
+      const formattedReply = await ensureFormattedLetter(replyContent, 'reply', parseDateTime(replyMatch[1]));
+      const key = `|${formattedReply}`;
       if (!existingPairs.has(key)) {
         await db.letters.add({
           direction: 'sent',
           userContent: '',
-          replyContent,
+          replyContent: formattedReply,
           sentAt: parseDateTime(replyMatch[1]),
           repliedAt: parseDateTime(replyMatch[1]),
         });
