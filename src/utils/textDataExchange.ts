@@ -561,7 +561,8 @@ export async function importDailyRecords(text: string): Promise<ExchangeResult> 
     let userNotes: string[] = [];
     let partnerNote: string | undefined;
     let userMoodTags: string[] = [];
-    let partnerMoodTag: string | undefined;
+    // 默认空字符串：导入行里没有"他的标签"时，把目标日期的标签清空（解决空值无法覆盖的问题）
+    let partnerMoodTag: string | undefined = '';
     for (const part of parts) {
       if (part.startsWith('纸条：')) {
         userNotes = part.slice(3).split('；').map(s => s.trim()).filter(s => s);
@@ -570,7 +571,7 @@ export async function importDailyRecords(text: string): Promise<ExchangeResult> 
       } else if (part.startsWith('我的标签：')) {
         userMoodTags = part.slice(5).split(',').map(s => s.trim()).filter(s => s);
       } else if (part.startsWith('他的标签：')) {
-        partnerMoodTag = part.slice(5).trim() || undefined;
+        partnerMoodTag = part.slice(5).trim() || '';
       } else if (part.startsWith('标签：')) {
         userMoodTags = part.slice(3).split(',').map(s => s.trim()).filter(s => s);
       }

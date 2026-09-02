@@ -17,6 +17,8 @@ interface SettingsState {
   keepScreenOn: boolean;
   chatBackground: string;
   soundVolume: number; // 提示音音量 0-100
+  incomingLetterMinHours: number; // 来信最短间隔（小时）
+  incomingLetterMaxHours: number; // 来信最长间隔（小时）
 
   loadSettings: () => Promise<void>;
   setReplyDelayMin: (v: number) => Promise<void>;
@@ -34,6 +36,8 @@ interface SettingsState {
   setKeepScreenOn: (v: boolean) => Promise<void>;
   setChatBackground: (v: string) => Promise<void>;
   setSoundVolume: (v: number) => Promise<void>;
+  setIncomingLetterMinHours: (v: number) => Promise<void>;
+  setIncomingLetterMaxHours: (v: number) => Promise<void>;
 }
 
 const defaultSettings: Record<string, unknown> = {
@@ -52,6 +56,8 @@ const defaultSettings: Record<string, unknown> = {
   keepScreenOn: false,
   chatBackground: '',
   soundVolume: 50,
+  incomingLetterMinHours: 24,
+  incomingLetterMaxHours: 42,
 };
 
 async function getSetting(key: string): Promise<unknown> {
@@ -79,10 +85,13 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   keepScreenOn: false,
   chatBackground: '',
   soundVolume: 50,
+  incomingLetterMinHours: 24,
+  incomingLetterMaxHours: 42,
 
   loadSettings: async () => {
     const keys = ['replyDelayMin', 'replyDelayMax', 'replyCountMin', 'replyCountMax', 'textRatio', 'nudgeRatio', 'stickerRatio',
-      'userAvatar', 'partnerAvatar', 'partnerName', 'userName', 'vibrationEnabled', 'keepScreenOn', 'chatBackground', 'soundVolume'];
+      'userAvatar', 'partnerAvatar', 'partnerName', 'userName', 'vibrationEnabled', 'keepScreenOn', 'chatBackground', 'soundVolume',
+      'incomingLetterMinHours', 'incomingLetterMaxHours'];
     const vals = await Promise.all(keys.map(getSetting));
     set({
       replyDelayMin: vals[0] as number,
@@ -100,6 +109,8 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       keepScreenOn: vals[12] as boolean,
       chatBackground: vals[13] as string,
       soundVolume: vals[14] as number,
+      incomingLetterMinHours: vals[15] as number,
+      incomingLetterMaxHours: vals[16] as number,
     });
   },
 
@@ -118,4 +129,6 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setKeepScreenOn: async (v) => { await saveSetting('keepScreenOn', v); set({ keepScreenOn: v }); },
   setChatBackground: async (v) => { await saveSetting('chatBackground', v); set({ chatBackground: v }); },
   setSoundVolume: async (v) => { await saveSetting('soundVolume', v); set({ soundVolume: v }); },
+  setIncomingLetterMinHours: async (v) => { await saveSetting('incomingLetterMinHours', v); set({ incomingLetterMinHours: v }); },
+  setIncomingLetterMaxHours: async (v) => { await saveSetting('incomingLetterMaxHours', v); set({ incomingLetterMaxHours: v }); },
 }));

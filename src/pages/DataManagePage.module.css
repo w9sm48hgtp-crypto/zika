@@ -341,6 +341,124 @@
   color: var(--color-text-hint);
 }
 
+/* 云备份 */
+.cloudStatus {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+.cloudIntervalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  margin-bottom: 10px;
+}
+
+.cloudIntervalSelect {
+  flex: 1;
+  max-width: 130px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.cloudIntervalSelect:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.cloudBtnRow {
+  display: flex;
+  gap: 8px;
+}
+
+.cloudBtnRow .primaryBtn,
+.cloudBtnRow .outlineBtn {
+  flex: 1;
+  padding: 10px 0;
+  font-size: var(--font-size-sm);
+}
+
+.cloudConfigToggle {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-accent);
+  margin: 10px 0 4px;
+  padding: 4px 0;
+}
+
+.cloudForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.cloudInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.cloudInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.cloudInput::placeholder {
+  color: var(--color-text-hint);
+}
+
+.backupList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.backupItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  transition: background 0.15s;
+}
+
+.backupItem:active:not(:disabled) {
+  background: var(--color-bg-warm);
+}
+
+.backupItem:disabled {
+  opacity: 0.5;
+}
+
+.backupSize {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+}
+
 /* JSON 导出弹窗 */
 .modalOverlay {
   position: fixed;

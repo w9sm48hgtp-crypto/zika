@@ -49,7 +49,7 @@ export async function exportModules(moduleKeys: string[]): Promise<ExportData> {
       case 'chatSettings': {
         const keys = ['userAvatar', 'partnerAvatar', 'partnerName', 'replyDelayMin', 'replyDelayMax',
           'replyCountMin', 'replyCountMax', 'textRatio', 'nudgeRatio', 'stickerRatio',
-          'vibrationEnabled'];
+          'vibrationEnabled', 'incomingLetterMinHours', 'incomingLetterMaxHours'];
         const settings: Record<string, unknown> = {};
         for (const k of keys) {
           const row = await db.settings.get(k);
@@ -94,7 +94,7 @@ export async function estimateModuleSizes(): Promise<Record<string, number>> {
 
   const settingKeys = ['userAvatar', 'partnerAvatar', 'partnerName', 'replyDelayMin', 'replyDelayMax',
     'replyCountMin', 'replyCountMax', 'textRatio', 'nudgeRatio', 'stickerRatio',
-    'vibrationEnabled'];
+    'vibrationEnabled', 'incomingLetterMinHours', 'incomingLetterMaxHours'];
   const settings: Record<string, unknown> = {};
   for (const k of settingKeys) {
     const row = await db.settings.get(k);

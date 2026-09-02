@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useWakeLock } from './hooks/useWakeLock';
+import { maybeAutoBackup } from './utils/cloudBackup';
 import { BottomNav } from './components/common/BottomNav';
 import ChatPage from './pages/ChatPage';
 import CompanionPage from './pages/CompanionPage';
@@ -28,6 +30,11 @@ import './App.css';
 
 function App() {
   useWakeLock();
+
+  // 打开应用时自动检查云备份（超过 12 小时未备份则静默上传）
+  useEffect(() => {
+    maybeAutoBackup();
+  }, []);
 
   return (
     <BrowserRouter>

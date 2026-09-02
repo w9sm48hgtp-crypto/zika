@@ -91,7 +91,7 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
         const record = value as Record<string, unknown>;
         const keys = ['userAvatar', 'partnerAvatar', 'partnerName', 'replyDelayMin', 'replyDelayMax',
           'replyCountMin', 'replyCountMax', 'textRatio', 'nudgeRatio', 'stickerRatio',
-          'vibrationEnabled'];
+          'vibrationEnabled', 'incomingLetterMinHours', 'incomingLetterMaxHours'];
         for (const k of keys) {
           if (record[k] !== undefined && record[k] !== null) {
             // 头像不覆盖已有的
@@ -126,16 +126,30 @@ export async function importModules(data: ExportData, moduleKeys: string[]): Pro
       case 'dailyRecords': {
         if (!Array.isArray(value)) continue;
         const existing = await db.dailyRecords.toArray();
-        const existingDates = new Set(existing.map(r => r.date));
-        const toAdd = value.filter((r: { date: string }) => !existingDates.has(r.date))
-          .map(({ id, ...rest }: { id?: number; date: string; userNotes?: string[]; partnerNote?: string; userMoodTags?: string[]; partnerMoodTag?: string; partnerMoodTime?: number }) => ({
-            date: rest.date,
-            userNotes: rest.userNotes || [],
-            partnerNote: rest.partnerNote,
-            userMoodTags: rest.userMoodTags || [],
-            partnerMoodTag: rest.partnerMoodTag,
-            partnerMoodTime: rest.partnerMoodTime,
-          }));
+        const existingMap = new Map(existing.map(r => [r.date, r]));
+        const toAdd: Record<string, unknown>[] = [];
+        for (const r of value as Array<{ id?: number; date?: string; userNotes?: string[]; partnerNote?: string; userMoodTags?: string[]; partnerMoodTag?: string; partnerMoodTime?: number }>) {
+          if (!r.date || !/^\d{4}-\d{2}-\d{2}$/.test(r.date)) continue;
+          const record = {
+            date: r.date,
+            userNotes: r.userNotes || [],
+            partnerNote: r.partnerNote,
+            userMoodTags: r.userMoodTags || [],
+            partnerMoodTag: r.partnerMoodTag || '',
+            partnerMoodTime: r.partnerMoodTime,
+          };
+          const existingRecord = existingMap.get(r.date);
+          if (existingRecord) {
+            // 已有记录中有用户手写内容 → 保护不覆盖
+            const hasUserContent = (existingRecord.userNotes && existingRecord.userNotes.length > 0)
+              || (existingRecord.userMoodTags && existingRecord.userMoodTags.length > 0);
+            if (hasUserContent) continue;
+            // 空占位记录 → 用导入数据覆盖（含空标签，可清掉占位标签）
+            await db.dailyRecords.update(existingRecord.id!, record as never);
+          } else {
+            toAdd.push(record);
+          }
+        }
         if (toAdd.length > 0) await db.dailyRecords.bulkAdd(toAdd as any);
         break;
       }

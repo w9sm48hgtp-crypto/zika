@@ -80,21 +80,20 @@ export const useDailyStore = create<DailyState>((set, get) => ({
       const ds = dateStr(year, month, d);
       if (ds > today) continue; // 未来日期不生成
       if (!map[ds]) {
-        const partnerMoodTag = hisTags.length > 0
-          ? hisTags[Math.floor(Math.random() * hisTags.length)].name
-          : undefined;
-        // 过去的日期立即揭晓，今天随机延迟
-        const moodTime = ds === today
-          ? now + Math.floor(Math.random() * 6 * 60 * 60 * 1000)
-          : now;
+        // 只有"今天"才生成他的随机标签；过去的日期不自动生成（避免未登录的天数也显示标签）
+        const isToday = ds === today;
         const record: DailyRecord = {
           date: ds,
           userNotes: [],
           userMoodTags: [],
-          partnerMoodTag,
-          partnerMoodTime: moodTime,
+          partnerMoodTag: isToday && hisTags.length > 0
+            ? hisTags[Math.floor(Math.random() * hisTags.length)].name
+            : undefined,
+          partnerMoodTime: isToday
+            ? now + Math.floor(Math.random() * 6 * 60 * 60 * 1000)
+            : undefined,
         };
-        if (ds === today) {
+        if (isToday) {
           record.partnerNote = await pickPartnerDailyNote() || undefined;
         }
         toAdd.push(record);

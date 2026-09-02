@@ -7,8 +7,10 @@ function ChatSettingsPage() {
   const {
     replyDelayMin, replyDelayMax, replyCountMin, replyCountMax,
     partnerName, userName, vibrationEnabled, soundVolume,
+    incomingLetterMinHours, incomingLetterMaxHours,
     setReplyDelayMin, setReplyDelayMax, setReplyCountMin, setReplyCountMax,
     setPartnerName, setUserName, setVibrationEnabled, setSoundVolume,
+    setIncomingLetterMinHours, setIncomingLetterMaxHours,
   } = useSettingsStore();
 
   return (
@@ -77,6 +79,48 @@ function ChatSettingsPage() {
               style={{ width: '100%', accentColor: 'var(--color-accent)' }}
             />
           </div>
+
+          <div className={styles.settingRow} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>来信最短间隔</span>
+              <span style={{ color: 'var(--color-text-hint)', fontSize: 'var(--font-size-sm)' }}>{incomingLetterMinHours} 小时</span>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="168"
+              value={incomingLetterMinHours}
+              onChange={(e) => {
+                const v = Number(e.target.value);
+                setIncomingLetterMinHours(v);
+                if (v > incomingLetterMaxHours) setIncomingLetterMaxHours(v);
+              }}
+              style={{ width: '100%', accentColor: 'var(--color-accent)' }}
+            />
+          </div>
+
+          <div className={styles.settingRow} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>来信最长间隔</span>
+              <span style={{ color: 'var(--color-text-hint)', fontSize: 'var(--font-size-sm)' }}>{incomingLetterMaxHours} 小时</span>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="168"
+              value={incomingLetterMaxHours}
+              onChange={(e) => {
+                const v = Number(e.target.value);
+                setIncomingLetterMaxHours(v);
+                if (v < incomingLetterMinHours) setIncomingLetterMinHours(v);
+              }}
+              style={{ width: '100%', accentColor: 'var(--color-accent)' }}
+            />
+          </div>
+
+          <p className={styles.settingHint}>
+            他主动来信的间隔时间，在最短和最长之间随机
+          </p>
 
           <div className={styles.settingRow}>
             <span>回复最少条数</span>

@@ -1,14 +1,25 @@
 import { create } from 'zustand';
 import { db, type Letter } from '../db';
 import { pickLetterReply } from '../utils/cardExtractor';
-import { checkAndGenerateIncoming } from '../utils/incomingLetter';
-import { useSettingsStore } from './settingsStore';
+import { checkAndGenerateIncoming, getLetterNames } from '../utils/incomingLetter';
 
 /** 格式化书信：自动添加称呼和落款 */
 function formatLetter(content: string, recipientName: string, senderName: string, timestamp: number): string {
   const d = new Date(timestamp);
   const dateStr = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
   return `致${recipientName}：\n${content}\n${dateStr}\n${senderName}`;
+}
+
+/** 修复早期因设置未加载而写成"致我…他"的书信（仅当已设置自定义昵称时） */
+function repairLetterText(text: string, userName: string, partnerName: string): string {
+  if (userName === '我' && partnerName === '他') return text; // 从未设置自定义昵称，无需修复
+  const lines = text.split('\n');
+  if (lines.length < 3) return text;
+  if (lines[0] !== '致我：') return text;
+  if (!/^\d{4}年\d{1,2}月\d{1,2}日$/.test(lines[lines.length - 2])) return text;
+  if (lines[lines.length - 1] !== '他') return text;
+  const content = lines.slice(1, -2).join('\n');
+  return `致${userName}：\n${content}\n${lines[lines.length - 2]}\n${partnerName}`;
 }
 
 // 模块级 timer 管理
@@ -58,14 +69,31 @@ export const useLetterStore = create<LetterState>((set, get) => ({
     } else {
       letters = await db.letters.orderBy('sentAt').reverse().toArray();
     }
+    // 修复历史错误昵称的书信（致我…他 → 自定义昵称）
+    const names = await getLetterNames();
+    let repaired = false;
+    for (const l of letters) {
+      const fixed = repairLetterText(l.userContent, names.userName, names.partnerName);
+      const fixedReply = l.replyContent
+        ? repairLetterText(l.replyContent, names.userName, names.partnerName)
+        : l.replyContent;
+      if (fixed !== l.userContent || fixedReply !== l.replyContent) {
+        await db.letters.update(l.id!, { userContent: fixed, replyContent: fixedReply });
+        l.userContent = fixed;
+        l.replyContent = fixedReply;
+        repaired = true;
+      }
+    }
+    if (repaired) {
+      // 重新读取，保持列表顺序与数据库一致
+      letters = await db.letters.orderBy('sentAt').reverse().toArray();
+    }
     set({ letters, loading: false });
   },
 
   sendLetter: async (content) => {
     const now = Date.now();
-    const settings = useSettingsStore.getState();
-    const partnerName = settings.partnerName || '他';
-    const userName = settings.userName || '我';
+    const { partnerName, userName } = await getLetterNames();
 
     // 自动格式化：致对方 + 内容 + 日期 + 我的名字
     const formatted = formatLetter(content, partnerName, userName, now);
@@ -86,8 +114,9 @@ export const useLetterStore = create<LetterState>((set, get) => ({
       if (letter && !letter.replyContent) {
         const rawReply = await pickLetterReply();
         const replyTime = Date.now();
-        // 回信格式：致我 + 内容 + 日期 + 对方名字
-        const formattedReply = formatLetter(rawReply, userName, partnerName, replyTime);
+        // 回信格式：致我 + 内容 + 日期 + 对方名字（生成时再读一次昵称，防止中途改名）
+        const freshNames = await getLetterNames();
+        const formattedReply = formatLetter(rawReply, freshNames.userName, freshNames.partnerName, replyTime);
         await db.letters.update(id as number, { replyContent: formattedReply });
         const letters = await db.letters.orderBy('sentAt').reverse().toArray();
         set({ letters });
@@ -103,9 +132,7 @@ export const useLetterStore = create<LetterState>((set, get) => ({
     cancelLetterTimer(id);
     const letter = await db.letters.get(id);
     if (!letter || letter.replyContent) return;
-    const settings = useSettingsStore.getState();
-    const partnerName = settings.partnerName || '他';
-    const userName = settings.userName || '我';
+    const { partnerName, userName } = await getLetterNames();
     const rawReply = await pickLetterReply();
     const replyTime = Date.now();
     const formattedReply = formatLetter(rawReply, userName, partnerName, replyTime);

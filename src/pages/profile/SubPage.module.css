@@ -102,6 +102,13 @@
   border-bottom: none;
 }
 
+.settingHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+  padding: 6px 0 2px;
+  line-height: 1.5;
+}
+
 .settingInput {
   text-align: right;
   font-size: var(--font-size-md);

@@ -1,11 +1,34 @@
 import { db } from '../db';
-import { useSettingsStore } from '../stores/settingsStore';
 
 /**
  * 来信生成工具
  * 系统自动从字卡库随机选 7-15 条文字字卡，模拟"他写给你的信"
- * 频率约一周 4-7 封（每 24-42 小时随机一封）
+ * 频率默认每 24-42 小时随机一封（可在聊天设置中调整）
  */
+
+/** 读取信件昵称 — 直接读数据库，避免设置未加载完成时用错默认名字 */
+export async function getLetterNames(): Promise<{ partnerName: string; userName: string }> {
+  const [p, u] = await Promise.all([
+    db.settings.get('partnerName'),
+    db.settings.get('userName'),
+  ]);
+  const partnerName = (p?.value as string)?.trim() || '他';
+  const userName = (u?.value as string)?.trim() || '我';
+  return { partnerName, userName };
+}
+
+/** 读取来信间隔设置（小时），默认 24-42 */
+async function getIncomingIntervalHours(): Promise<{ minHours: number; maxHours: number }> {
+  const [minRow, maxRow] = await Promise.all([
+    db.settings.get('incomingLetterMinHours'),
+    db.settings.get('incomingLetterMaxHours'),
+  ]);
+  let minHours = Number(minRow?.value) || 24;
+  let maxHours = Number(maxRow?.value) || 42;
+  minHours = Math.max(1, Math.min(minHours, 168));
+  maxHours = Math.max(minHours, Math.min(maxHours, 168));
+  return { minHours, maxHours };
+}
 
 /** 格式化书信 */
 function formatLetter(
@@ -21,9 +44,7 @@ function formatLetter(
 
 /** 生成一封来信 */
 export async function generateIncomingLetter(): Promise<number | null> {
-  const settings = useSettingsStore.getState();
-  const partnerName = settings.partnerName || '他';
-  const userName = settings.userName || '我';
+  const { partnerName, userName } = await getLetterNames();
 
   // 从字卡库随机选 7-15 条文字字卡
   const textCards = await db.cards
@@ -55,15 +76,16 @@ export async function generateIncomingLetter(): Promise<number | null> {
 }
 
 /** 检查是否需要生成新的来信（页面打开时调用）
- *  频率：距离上次来信 24-42 小时后自动生成 */
+ *  频率：距离上次来信达到随机间隔（默认 24-42 小时，可在聊天设置中调整） */
 export async function checkAndGenerateIncoming(): Promise<number | null> {
   const row = await db.settings.get('lastIncomingLetterTime');
   const lastTime = (row?.value as number) || 0;
   const now = Date.now();
 
-  // 随机间隔 24-42 小时
-  const minInterval = 24 * 60 * 60 * 1000;
-  const maxInterval = 42 * 60 * 60 * 1000;
+  // 随机间隔：设置的最短/最长来信间隔之间
+  const { minHours, maxHours } = await getIncomingIntervalHours();
+  const minInterval = minHours * 60 * 60 * 1000;
+  const maxInterval = maxHours * 60 * 60 * 1000;
   const randomInterval = minInterval + Math.random() * (maxInterval - minInterval);
 
   if (now - lastTime < randomInterval) return null;
