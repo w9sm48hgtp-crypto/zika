@@ -584,10 +584,10 @@ export async function importDailyRecords(text: string): Promise<ExchangeResult> 
       const hasUserContent = (existingRecord.userNotes && existingRecord.userNotes.length > 0)
         || (existingRecord.userMoodTags && existingRecord.userMoodTags.length > 0);
       if (hasUserContent) continue;
-      // 空占位记录 → 用导入数据覆盖
-      await db.dailyRecords.update(existingRecord.id!, { userNotes, partnerNote, userMoodTags, partnerMoodTag });
+      // 空占位记录 → 用导入数据覆盖（揭晓时间设为 0，立即显示，解决空值无法覆盖的问题）
+      await db.dailyRecords.update(existingRecord.id!, { userNotes, partnerNote, userMoodTags, partnerMoodTag, partnerMoodTime: 0 });
     } else {
-      await db.dailyRecords.add({ date, userNotes, partnerNote, userMoodTags, partnerMoodTag });
+      await db.dailyRecords.add({ date, userNotes, partnerNote, userMoodTags, partnerMoodTag, partnerMoodTime: 0 });
     }
     // 更新 map 防止同次导入中同日期重复处理
     existingMap.set(date, { ...existingRecord, date, userNotes, partnerNote, userMoodTags, partnerMoodTag } as DailyRecord);

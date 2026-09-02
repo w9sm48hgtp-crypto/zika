@@ -102,15 +102,15 @@ function ChatPage() {
       ]);
       const nextAt = (savedNextAt?.value as number) || 0;
 
-      if (nextAt > Date.now()) {
+      if (nextAt > Date.now() && savedStatus?.value) {
         // 还没到下次更换时间，恢复旧状态并继续等待
-        setPartnerStatus((savedStatus?.value as string) || null);
+        setPartnerStatus(savedStatus.value as string);
         const remaining = nextAt - Date.now();
         statusTimerRef.current = setTimeout(() => {
           refreshStatus();
         }, remaining);
       } else {
-        // 已过更换时间或首次使用，立即刷新
+        // 已过更换时间、首次使用、或旧状态为空（如情绪标签刚恢复）→ 立即刷新
         refreshStatus();
       }
     })();

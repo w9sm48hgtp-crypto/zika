@@ -91,6 +91,16 @@ function DataManagePage() {
     })();
   }, []);
 
+  // 自动备份成功后刷新"上次备份"时间显示
+  useEffect(() => {
+    const onBackupDone = async () => {
+      setCloudLastAt(await getLastBackupTime());
+      setCloudLastErr(null);
+    };
+    window.addEventListener('zika:cloudBackupDone', onBackupDone);
+    return () => window.removeEventListener('zika:cloudBackupDone', onBackupDone);
+  }, []);
+
   // 加载各模块大小
   useEffect(() => {
     estimateModuleSizes().then(setModuleSizes);

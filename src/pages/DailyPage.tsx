@@ -183,7 +183,7 @@ function DailyPage() {
                 onClick={() => handleDayClick(day)}
               >
                 <span className={styles.dayNum}>{day}</span>
-                {record?.partnerMoodTag && record?.partnerMoodTime && Date.now() >= record.partnerMoodTime && ds <= today ? (
+                {record?.partnerMoodTag && (!record?.partnerMoodTime || Date.now() >= record.partnerMoodTime) && ds <= today ? (
                   <span className={styles.dayTagPartner}>{record.partnerMoodTag}</span>
                 ) : null}
                 {tags.length > 0 && (

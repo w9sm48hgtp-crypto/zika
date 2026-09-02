@@ -201,6 +201,10 @@ export async function backupToCloud(): Promise<{ ok: boolean; message: string }>
 
     await db.settings.put({ key: KEY_LAST_AT, value: Date.now() });
     await db.settings.delete(KEY_LAST_ERR);
+    // 通知页面刷新"上次备份"显示
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('zika:cloudBackupDone'));
+    }
     // 清理旧备份，只保留最近 KEEP_BACKUPS 份
     await pruneOldBackups(config).catch(() => {});
     return { ok: true, message: '已成功备份到云端' };

@@ -31,9 +31,14 @@ import './App.css';
 function App() {
   useWakeLock();
 
-  // 打开应用时自动检查云备份（超过 12 小时未备份则静默上传）
+  // 自动云备份：打开应用时检查一次，之后每分钟再检查一次
+  // （内部会按设置的间隔判断是否需要备份，不满足就跳过）
   useEffect(() => {
     maybeAutoBackup();
+    const timer = setInterval(() => {
+      maybeAutoBackup();
+    }, 60 * 1000);
+    return () => clearInterval(timer);
   }, []);
 
   return (
