@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { db, type DailyRecord, type MoodTag } from '../db';
 import { pickPartnerDailyNote, pickNoteReply } from '../utils/cardExtractor';
+import { getActiveDatesInRange } from '../utils/activeDays';
 import {
   predictNext, getPeriodDays, getPredictedDays,
   startPeriod, endPeriod, getOngoingPeriod, cancelLastPeriod, deletePeriodContaining,
@@ -73,25 +74,37 @@ export const useDailyStore = create<DailyState>((set, get) => ({
     const today = todayStr();
     const tags = await db.moodTags.toArray();
     const hisTags = tags.filter(t => t.category === 'his' || t.category === 'both');
+    // 你当天来过的日期（打开网站/聊天/陪伴/写字的痕迹），只有这些日子他才记录状态
+    const activeSet = await getActiveDatesInRange(firstDay, lastDay);
     const now = Date.now();
+    // 当天最晚揭晓时间：不超过今天 23:59:59.999
+    const endOfToday = (() => {
+      const d = new Date();
+      d.setHours(23, 59, 59, 999);
+      return d.getTime();
+    })();
+    // 他的状态：当天内任意时间揭晓（随机 0~6 小时，最晚不跨天）
+    const pickMoodTime = () => Math.min(
+      now + Math.floor(Math.random() * 6 * 60 * 60 * 1000),
+      endOfToday,
+    );
     const toAdd: DailyRecord[] = [];
 
     for (let d = 1; d <= totalDays; d++) {
       const ds = dateStr(year, month, d);
       if (ds > today) continue; // 未来日期不生成
       if (!map[ds]) {
-        // 只有"今天"才生成他的随机标签；过去的日期不自动生成（避免未登录的天数也显示标签）
+        // 只有"你来过"的那天才生成他的随机标签；没来过的日子不生成（避免脏标签）
         const isToday = ds === today;
+        const isActive = isToday || activeSet.has(ds);
         const record: DailyRecord = {
           date: ds,
           userNotes: [],
           userMoodTags: [],
-          partnerMoodTag: isToday && hisTags.length > 0
+          partnerMoodTag: isActive && hisTags.length > 0
             ? hisTags[Math.floor(Math.random() * hisTags.length)].name
             : undefined,
-          partnerMoodTime: isToday
-            ? now + Math.floor(Math.random() * 6 * 60 * 60 * 1000)
-            : undefined,
+          partnerMoodTime: isToday ? pickMoodTime() : (isActive ? now : undefined),
         };
         if (isToday) {
           record.partnerNote = await pickPartnerDailyNote() || undefined;
@@ -104,6 +117,27 @@ export const useDailyStore = create<DailyState>((set, get) => ({
       const id = await db.dailyRecords.add(r);
       r.id = id as number;
       map[r.date] = r;
+    }
+
+    // 今天已有记录但他的标签为空（如导入产生的空记录）→ 补一个随机标签。
+    // 与用户自己是否记录无关，当天内随机时间揭晓
+    const existingToday = map[today];
+    if (existingToday?.id != null && !existingToday.partnerMoodTag && hisTags.length > 0) {
+      const tag = hisTags[Math.floor(Math.random() * hisTags.length)].name;
+      const moodTime = pickMoodTime();
+      await db.dailyRecords.update(existingToday.id, { partnerMoodTag: tag, partnerMoodTime: moodTime });
+      map[today] = { ...existingToday, partnerMoodTag: tag, partnerMoodTime: moodTime };
+    }
+
+    // 过去的日子：你当天来过、但记录里他的标签为空（如旧版本/导入产生的）→ 补上，立即显示
+    for (const ds of Object.keys(map)) {
+      if (ds >= today) continue;
+      if (!activeSet.has(ds)) continue;
+      const r = map[ds];
+      if (!r?.id || r.partnerMoodTag || hisTags.length === 0) continue;
+      const tag = hisTags[Math.floor(Math.random() * hisTags.length)].name;
+      await db.dailyRecords.update(r.id, { partnerMoodTag: tag, partnerMoodTime: now });
+      map[ds] = { ...r, partnerMoodTag: tag, partnerMoodTime: now };
     }
 
     // 加载经期数据

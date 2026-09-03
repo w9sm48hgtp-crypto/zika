@@ -5,6 +5,7 @@ import { parseImportData, importModules } from '../utils/importData';
 import { db } from '../db';
 import type { ImportPreview } from '../utils/importData';
 import { DATA_TYPE_META, DATA_CATEGORIES, exportTextData, importTextData, type DataType } from '../utils/textDataExchange';
+import { getActiveDatesInRange } from '../utils/activeDays';
 import {
   saveCloudConfig, getCloudConfig, getLastBackupTime, getLastBackupError,
   backupToCloud, listCloudBackups, restoreFromCloud, type CloudBackupInfo,
@@ -276,20 +277,25 @@ function DataManagePage() {
 
   // ========== 清理历史脏标签 ==========
 
-  /** 找出历史脏标签：过去日期、有他的标签、但用户没写过任何内容（纸条/标签/留言都没有） */
+  /** 找出历史脏标签：过去日期、有他的标签、用户没写过任何内容（纸条/标签/留言都没有）、且你当天没来过 */
   const findDirtyTagRecords = useCallback(async () => {
     const today = (() => {
       const d = new Date();
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     })();
     const all = await db.dailyRecords.toArray();
-    return all.filter(r =>
+    const candidates = all.filter(r =>
       r.date < today &&
       r.partnerMoodTag &&
       !(r.userNotes && r.userNotes.length > 0) &&
       !(r.userMoodTags && r.userMoodTags.length > 0) &&
       !r.partnerNote,
     );
+    if (candidates.length === 0) return candidates;
+    // 你当天来过（有打开网站/聊天/陪伴/写信痕迹）的日子，他的状态是合理的，不清
+    const dates = candidates.map(r => r.date).sort();
+    const activeSet = await getActiveDatesInRange(dates[0], today);
+    return candidates.filter(r => !activeSet.has(r.date));
   }, []);
 
   const handleTagCleanupCheck = useCallback(async () => {

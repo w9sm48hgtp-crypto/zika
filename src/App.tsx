@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useWakeLock } from './hooks/useWakeLock';
 import { maybeAutoBackup } from './utils/cloudBackup';
+import { markTodayActive } from './utils/activeDays';
 import { BottomNav } from './components/common/BottomNav';
 import ChatPage from './pages/ChatPage';
 import CompanionPage from './pages/CompanionPage';
@@ -34,6 +35,7 @@ function App() {
   // 自动云备份：打开应用时检查一次，之后每分钟再检查一次
   // （内部会按设置的间隔判断是否需要备份，不满足就跳过）
   useEffect(() => {
+    markTodayActive();
     maybeAutoBackup();
     const timer = setInterval(() => {
       maybeAutoBackup();
